@@ -1,0 +1,57 @@
+# Node.js
+node_modules/
+
+# Dependency directories
+bower_components/
+jspm_packages/
+
+# Compiled output
+dist/
+build/
+out/
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Miscellaneous
+*.swp
+*.swo
+*.bak
+*.tmp
+*.tmp.*
+*.bak.*
+node_modules
+.env
+
+# Hardhat files
+/cache
+/artifacts
+
+# TypeChain files
+/typechain
+/typechain-types
+
+# solidity-coverage files
+/coverage
+/coverage.json
+
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
