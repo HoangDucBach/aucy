@@ -49,7 +49,7 @@ const getProvider = () => {
     throw new Error("Metamask is not installed! Go install the extension!");
   }
 
-  return new ethers.BrowserProvider(ethereum);
+  return new ethers.providers.Web3Provider(ethereum);
 }
 
 // returns a list of accounts
@@ -75,7 +75,7 @@ export const connectToMetamask = async () => {
   return accounts;
 }
 
-class MetaMaskWallet implements WalletInterface {
+export class MetaMaskWallet implements WalletInterface {
   private convertAccountIdToSolidityAddress(accountId: AccountId): string {
     const accountIdString = accountId.evmAddress !== null
       ? accountId.evmAddress.toString()
@@ -83,9 +83,11 @@ class MetaMaskWallet implements WalletInterface {
 
     return `0x${accountIdString}`;
   }
-  public async getSigner() {
+  async getSigner() {
     const provider = getProvider();
-    return await provider.getSigner();
+    const signer = provider.getSigner();
+    console.log("Signer:", signer);
+    return signer;
   }
   // Purpose: Transfer HBAR
   // Returns: Promise<string>
@@ -96,7 +98,7 @@ class MetaMaskWallet implements WalletInterface {
     // build the transaction
     const tx = await signer.populateTransaction({
       to: this.convertAccountIdToSolidityAddress(toAddress),
-      value: ethers.parseEther(amount.toString()),
+      value: ethers.utils.parseEther(amount.toString()),
     });
     try {
       // send the transaction
@@ -213,9 +215,7 @@ export const MetaMaskClient = () => {
       const provider = getProvider();
       provider.listAccounts().then((signers) => {
         if (signers.length !== 0) {
-          signers[0].getAddress().then((address) => {
-            setMetamaskAccountAddress(address);
-          });
+          setMetamaskAccountAddress(signers[0]);
         } else {
           setMetamaskAccountAddress("");
         }

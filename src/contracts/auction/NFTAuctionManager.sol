@@ -11,13 +11,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 // Internal imports
-import "./Auction.sol";
+import "./AAuction.sol";
 
-contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
-    /*
-    || MODIFIERS
-     */
-
+contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
     /**
      * Modifier to check if the caller is the owner of the NFT
      */
@@ -28,24 +24,43 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
         );
         _;
     }
+
+    /*
+     * Modifier to check owner of auction
+     */
+    modifier onlyAuctionOwner(address _auctionId) {
+        require(
+            auctions[_auctionId].seller == msg.sender,
+            "Only auction owner can perform this action"
+        );
+        _;
+    }
+
     function createAuction(
+        address _tokenAddress,
         uint256 _tokenId,
         uint256 _startingPrice,
         uint256 _endingPrice,
         uint32 _bidPeriod,
         uint256 _duration
-    ) external override onlyNFTOwner returns (address) {
+    ) external override returns (address) {
         address auctionId = address(
             uint160(
                 uint256(
                     keccak256(
-                        abi.encodePacked(block.timestamp, msg.sender, _tokenId)
+                        abi.encodePacked(
+                            block.timestamp,
+                            msg.sender,
+                            _tokenAddress,
+                            _tokenId
+                        )
                     )
                 )
             )
         );
         auctions[auctionId] = Auction({
             seller: msg.sender,
+            tokenAddress: _tokenAddress,
             tokenId: _tokenId,
             startingPrice: _startingPrice,
             endingPrice: _endingPrice,
@@ -60,7 +75,6 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
         // Emit an event to notify that an auction has been created
         emit AuctionCreated(
             auctionId,
-            _tokenId,
             msg.sender,
             _startingPrice,
             _endingPrice,
@@ -80,7 +94,7 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
      */
     function endAuction(
         address _auctionId
-    ) external override onlyNFTOwner returns (bool) {
+    ) external override onlyAuctionOwner(_auctionId) returns (bool) {
         // Retrieve the auction from the auctions mapping
         Auction storage auction = auctions[_auctionId];
 
@@ -102,8 +116,6 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
         // Emit an event to notify that the auction has ended
         emit AuctionEnded(
             _auctionId,
-            auction.tokenId,
-            auction.seller,
             auction.highestBid,
             auction.highestBidder,
             block.timestamp
@@ -120,7 +132,7 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
      */
     function cancelAuction(
         address _auctionId
-    ) external override onlyNFTOwner returns (bool) {
+    ) external override onlyAuctionOwner(_auctionId) returns (bool) {
         // Retrieve the auction from the auctions mapping
         Auction storage auction = auctions[_auctionId];
 
@@ -134,12 +146,7 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
         auction.endedAt = block.timestamp;
 
         // Emit an event to notify that the auction has been canceled
-        emit AuctionCancelled(
-            _auctionId,
-            auction.tokenId,
-            auction.seller,
-            block.timestamp
-        );
+        emit AuctionCancelled(_auctionId, block.timestamp);
 
         // Return true to indicate that the auction was successfully canceled
         return true;
@@ -160,15 +167,9 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
     function placeBid(
         address _auctionId,
         uint256 _amount
-    ) external override payable returns (bool) {
+    ) external payable override onlyAuctionOnGoing(_auctionId) returns (bool) {
         // Retrieve the auction from the auctions mapping
         Auction storage auction = auctions[_auctionId];
-
-        // Check if the auction is ongoing
-        require(
-            auction.startedAt + auction.duration > block.timestamp,
-            "Auction is not ongoing"
-        );
 
         // Check if the bid amount is greater than the highest bid
         require(
@@ -194,24 +195,20 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
             "The value sent is not equal to the bid amount"
         );
 
-
         // Update the highest bid and highest bidder of the auction
         auction.highestBid = _amount;
         auction.highestBidder = msg.sender;
 
         // Emit an event to notify that a bid has been placed
-        emit BidPlaced(
-            msg.sender,
-            _auctionId,
-            _amount,
-            block.timestamp
-        );
+        emit BidPlaced(msg.sender, _auctionId, _amount, block.timestamp);
 
         // Return true to indicate that the bid was successfully placed
         return true;
     }
 
-    function withdrawBid(address _auctionId) external override payable returns (bool) {
+    function withdrawBid(
+        address _auctionId
+    ) external payable override returns (bool) {
         // Retrieve the auction from the auctions mapping
         Auction storage auction = auctions[_auctionId];
 
@@ -265,4 +262,22 @@ contract NFTAuctionManager is Ownable(msg.sender), Auction, IERC721Receiver {
         // Return the highest bidder of the auction
         return auction.highestBidder;
     }
+
+    /*
+    || SPECIAL FUNCTIONS
+     */
+    function donate() external payable {
+        // Check if the value sent is greater than 0
+        require(msg.value > 0, "The value sent is not greater than 0");
+
+        // Update the donation amount
+        donation += msg.value;
+    }
+
+    /*
+    || RECEIVE AND FALLBACK FUNCTIONS
+    */
+    receive() external payable {}
+
+    fallback() external payable {}
 }

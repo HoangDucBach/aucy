@@ -26,6 +26,13 @@ interface IBidder {
     || EVENTS
     */
 
+    /**
+     * @dev Event to log a bid placed in an auction
+     * @param bidder The address of the bidder who placed the bid.
+     * @param auctionId The address of the auction where the bid was placed.
+     * @param amount The amount of the bid.
+     * @param timestamp The timestamp when the bid was placed.
+     */
     event BidPlaced(
         address indexed bidder,
         address indexed auctionId,
@@ -33,6 +40,13 @@ interface IBidder {
         uint256 timestamp
     );
 
+    /**
+     * Event to log a bid withdrawn from an auction
+     * @param bidder The address of the bidder who withdrew the bid.
+     * @param auctionId The address of the auction where the bid was withdrawn.
+     * @param amount The amount of the bid.
+     * @param timestamp The timestamp when the bid was withdrawn.
+     */
     event BidWithdrawn(
         address indexed bidder,
         address indexed auctionId,

@@ -1,4 +1,4 @@
-export type NetworkName = "testnet";
+export type NetworkName = "testnet" | "previewnet";
 export type ChainId = '0x128';
 export type NetworkConfig = {
     network: NetworkName,

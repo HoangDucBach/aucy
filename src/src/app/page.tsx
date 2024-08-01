@@ -1,62 +1,91 @@
 'use client';
-
 // External imports
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Internal imports
-import {createNFT} from '@/entry-functions/create-nft';
 import NavBar from "@/components/Navbar";
-import {AllWalletsProvider} from "@/services/wallets/AllWalletsProvider";
+import { AllWalletsProvider } from "@/services/wallets/AllWalletsProvider";
+import { createAuction } from '@/entry-functions'; // Import hàm createAuction
+import { TAuctionCreation } from '@/types';
 import { useWalletInterface } from '@/services/wallets/useWalletInterface';
-import {HEDERA_PRIVATE_KEY, METAMASK_GAS_LIMIT_ASSOCIATE} from "@/config/constants";
 
-const CreateNFTForm = () => {
-    const [tokenInfo, setTokenInfo] = useState<any>();
-    const {walletInterface, accountId} = useWalletInterface();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const {name, value} = e.target;
-        setTokenInfo({
-            ...tokenInfo,
-            [name]: value,
+const Form = () => {
+    const { accountId, walletInterface } = useWalletInterface();
+
+    // State để quản lý dữ liệu form
+    const [auctionData, setAuctionData] = useState({
+        tokenId: '',
+        startingPrice: '',
+        endingPrice: '',
+        bidPeriod: '',
+        duration: ''
+    });
+
+    // Hàm xử lý khi form được submit
+    const handleSubmit = async (event: any) => {
+        event.preventDefault();
+        const auction = {
+            tokenId: auctionData.tokenId,
+            startingPrice: parseInt(auctionData.startingPrice),
+            endingPrice: parseInt(auctionData.endingPrice),
+            bidPeriod: parseInt(auctionData.bidPeriod),
+            duration: parseInt(auctionData.duration)
+        } satisfies TAuctionCreation;
+        try {
+            const result = await createAuction(auction, walletInterface);
+            console.log('Auction created:', result);
+        } catch (error) {
+            console.error('Error creating auction:', error);
+        }
+    };
+
+    // Hàm xử lý khi dữ liệu form thay đổi
+    const handleChange = (event: any) => {
+        const { name, value } = event.target;
+        setAuctionData({
+            ...auctionData,
+            [name]: value
         });
     };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!tokenInfo) {
-            alert('Please fill in all fields.');
-            return;
-        }
-        try {
-            await createNFT(tokenInfo, walletInterface, accountId!);
-            alert('NFT created successfully! at');
-        } catch (error) {
-            console.error('Error creating NFT:', error);
-            alert('Failed to create NFT.');
-        }
-    };
-
+    useEffect(() => {
+        console.log('Account ID:', accountId);
+    }, [accountId]);
     return (
-        <form onSubmit={handleSubmit}>
-            <input type="text" name="name" placeholder="Name" onChange={handleChange}/>
-            <input type="text" name="symbol" placeholder="Symbol" onChange={handleChange}/>
-            <input type="number" name="decimals" placeholder="Decimals" onChange={handleChange}/>
-            <input type="text" name="adminKey" placeholder="Admin Key" onChange={handleChange}/>
-            <input type="text" name="kycKey" placeholder="KYC Key" onChange={handleChange}/>
-            <input type="text" name="freezeKey" placeholder="Freeze Key" onChange={handleChange}/>
-            <input type="text" name="supplyKey" placeholder="Supply Key" onChange={handleChange}/>
-            <input type="text" name="customFees" placeholder="Custom Fees" onChange={handleChange}/>
-            <input type="number" name="maxSupply" placeholder="Max Supply" onChange={handleChange}/>
-            <button type="submit">Create NFT</button>
-        </form>
-    );
-};
-
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Token ID:</label>
+                    <input type="text" name="tokenId" value={auctionData.tokenId} onChange={handleChange} required />
+                </div>
+                <div>
+                    <label>Starting Price:</label>
+                    <input type="number" name="startingPrice" value={auctionData.startingPrice} onChange={handleChange} required />
+                </div>
+                <div>
+                    <label>Ending Price:</label>
+                    <input type="number" name="endingPrice" value={auctionData.endingPrice} onChange={handleChange} required />
+                </div>
+                <div>
+                    <label>Bid Period:</label>
+                    <input type="number" name="bidPeriod" value={auctionData.bidPeriod} onChange={handleChange} required />
+                </div>
+                <div>
+                    <label>Duration:</label>
+                    <input type="number" name="duration" value={auctionData.duration} onChange={handleChange} required />
+                </div>
+                <button type="submit">Create Auction</button>
+            </form>
+        </div>
+    )
+}
 export default function Home() {
+
+
+
     return (
         <AllWalletsProvider>
-            <NavBar/>
-            <CreateNFTForm/>
+            <Form/>
+            <NavBar />
         </AllWalletsProvider>
     );
 }

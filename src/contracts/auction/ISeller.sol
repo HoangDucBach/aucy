@@ -10,12 +10,14 @@ interface ISeller {
      * @dev Create an auction
      * @param _tokenId The ID of the token to auction.
      * @param _startingPrice The starting price of the auction.
+     * @param _startingPrice The starting price of the auction.
      * @param _endingPrice The ending price of the auction.
      * @param _bidPeriod The period during which bids can be placed.
      * @param _duration The total duration of the auction.
      * @return address The address of the created auction
      */
     function createAuction(
+        address _tokenAddress,
         uint256 _tokenId,
         uint256 _startingPrice,
         uint256 _endingPrice,
@@ -33,7 +35,6 @@ interface ISeller {
     /**
      * @dev Cancel an auction
      * @param _auctionId The address of the auction to cancel.
-     * @return bool True if the auction is cancelled
      */
     function cancelAuction(address _auctionId) external returns (bool);
 }

@@ -1,11 +1,11 @@
 // External imports
 import type { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nomiclabs/hardhat-ethers";
-
 import envConfig from "dotenv";
 
 // Internal imports
+import "./tasks/nftAuctionManger/deploy";
 
 envConfig.config({
   path: ".env.development",
@@ -15,9 +15,6 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.24",
-      },
-      {
         version: "0.8.20",
       },
       {
@@ -25,17 +22,21 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  defaultNetwork: "hardhat",
+  defaultNetwork: "testnet",
   networks: {
     hardhat: {
     },
     testnet: {
-      chainId: 296,
       url: process.env.NEXT_PUBLIC_TESTNET_ENDPOINT,
       accounts: [process.env.NEXT_PUBLIC_TESTNET_OPERATOR_PRIVATE_KEY as string],
     },
   }
 };
+
+// task("nftAuctionManager-deploy", async () => {
+//   const deployContract = require("./scripts/deploy/NFTManager").default;
+//   return deployContract();
+// });
 
 
 export default config;

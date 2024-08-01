@@ -6,8 +6,12 @@ import "./IAuction.sol";
 import "./ISeller.sol";
 import "./IBidder.sol";
 
-abstract contract Auction is IAuction, ISeller, IBidder {
+abstract contract AAuction is IAuction, ISeller, IBidder {
     mapping(address => Auction) public auctions;
+    /**
+     * @dev Donation is given in addition to the winner, this is a separate amount not included in the highest bid
+     */
+    uint256 public donation = 0;
 
     constructor() {}
 
@@ -26,5 +30,4 @@ abstract contract Auction is IAuction, ISeller, IBidder {
         );
         _;
     }
-    
 }
