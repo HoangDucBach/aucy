@@ -1,36 +1,18 @@
 import { useContext } from "react"
-import { MetamaskContext } from "@/contexts/MetamaskContext";
 import { WalletConnectContext } from "@/contexts/WalletConnectContext";
-import { metamaskWallet } from "./metamask/metamaskClient";
-import { walletConnectWallet } from "./walletconnect/walletConnectClient";
-import {WalletInterface} from "@/services/helpers/walletInterfaces";
-import {PublicKey} from "@hashgraph/sdk";
+import { WalletConnectWallet, walletConnectWallet } from "./walletconnect/walletConnectClient";
 
 // Purpose: This hook is used to determine which wallet interface to use
 // Example: const { accountId, walletInterface } = useWalletInterface();
 // Returns: { accountId: string | null, walletInterface: WalletInterface | null }
 type TWalletInterface = {
     accountId: string | null;
-    walletInterface: WalletInterface;
+    walletInterface: WalletConnectWallet;
 }
-export const useWalletInterface = () => {
-    const metamaskCtx = useContext(MetamaskContext);
+export const useWalletInterface = (): TWalletInterface => {
     const walletConnectCtx = useContext(WalletConnectContext);
-
-    if (metamaskCtx.metamaskAccountAddress) {
-        return {
-            accountId: metamaskCtx.metamaskAccountAddress,
-            walletInterface: metamaskWallet,
-        } ;
-    } else if (walletConnectCtx.accountId) {
-        return {
-            accountId: walletConnectCtx.accountId,
-            walletInterface: walletConnectWallet,
-        };
-    } else {
-        return {
-            accountId: null,
-            walletInterface: null,
-        };
-    }
+    return {
+        accountId: walletConnectCtx.accountId,
+        walletInterface: walletConnectWallet, 
+    };
 }

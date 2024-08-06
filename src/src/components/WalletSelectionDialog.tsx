@@ -1,49 +1,60 @@
-import { Button, Dialog, Stack } from "@mui/material";
-import { connectToMetamask } from "@/services/wallets/metamask/metamaskClient";
+'use client';
 import { openWalletConnectModal } from "@/services/wallets/walletconnect/walletConnectClient";
-import WalletConnectLogo from "../../public/assets/walletconnect-logo.svg";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Divider } from "@nextui-org/react";
 
-
+// Internal imports
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 interface WalletSelectionDialogProps {
-  open: boolean;
-  setOpen: (value: boolean) => void;
-  onClose: (value: string) => void;
+    open?: boolean;
+    setOpen?: (value: boolean) => void;
+    onClose?: (value: string) => void;
 }
 
 export const WalletSelectionDialog = (props: WalletSelectionDialogProps) => {
-  const { onClose, open, setOpen } = props;
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    return (
+        <>
+            <Button
+                onClick={onOpen}
+                variant="solid"
+                color="primary"
+                radius="full"
+            >
+                Connect Wallet
+            </Button>
+            <Modal
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
+                isDismissable={true}
+                size="xs"
+                placement="center"
+            >
 
-  return (
-    <Dialog onClose={onClose} open={open}>
-      <Stack p={2} gap={1}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            openWalletConnectModal()
-            setOpen(false);
-          }}
-        >
-          <img
-            src={window.location.origin + '/assets/walletconnect-logo.svg'}
-            alt='walletconnect logo'
-            className='w-8 h-8'
-          />
-          WalletConnect
-        </Button>
-        <Button
-          variant="contained"
-          onClick={() => {
-            connectToMetamask();
-          }}
-        >
-          <img
-            src={window.location.origin + '/assets/metamask-logo.svg'}
-            alt='metamask logo'
-            className='w-8 h-8'
-          />
-          Metamask
-        </Button>
-      </Stack>
-    </Dialog>
-  );
+                <ModalContent>
+                    <ModalHeader className="flex flex-row gap-4 items-center">
+                        <Image src='/aucy.svg' alt="Aucy" width={24} height={24} />
+                        Connect to Aucy
+                    </ModalHeader>
+                    <ModalBody>
+                        <Button
+                            variant="solid"
+                            fullWidth
+                            onClick={() => {
+                                openWalletConnectModal()
+                            }}
+                        >
+                            WalletConnect
+                            <img
+                                src={'/assets/walletconnect-logo.svg'}
+                                alt='walletconnect logo'
+                                className='w-8 h-8'
+                            />
+                        </Button>
+                        <Divider />
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        </>
+    );
 }

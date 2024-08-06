@@ -8,21 +8,27 @@ interface ISeller {
 
     /**
      * @dev Create an auction
+     * @param _name The name of the auction.
+     * @param _description The description of the auction.
      * @param _tokenId The ID of the token to auction.
      * @param _startingPrice The starting price of the auction.
      * @param _startingPrice The starting price of the auction.
+     * @param _minBidIncrement The minimum bid increment of the auction.
      * @param _endingPrice The ending price of the auction.
-     * @param _bidPeriod The period during which bids can be placed.
-     * @param _duration The total duration of the auction.
+     * @param _endingAt The time when the auction will end.
      * @return address The address of the created auction
      */
     function createAuction(
+        string memory _name,
+        string memory _description,
         address _tokenAddress,
         uint256 _tokenId,
         uint256 _startingPrice,
+        uint256 _minBidIncrement,
         uint256 _endingPrice,
-        uint32 _bidPeriod,
-        uint256 _duration
+        uint256 _endingAt,
+        address[] memory _receivers,
+        uint16[] memory _percentages
     ) external returns (address);
 
     /**

@@ -5,9 +5,9 @@ const main = async () => {
 
     const nftAuctionManager = await NFTAuctionManager.deploy();
 
-    await nftAuctionManager.deployed();
+    await nftAuctionManager.waitForDeployment();
 
-    console.log("NFTAuctionManager deployed to:", nftAuctionManager.address);
+    console.log("NFTAuctionManager deployed to:", await nftAuctionManager.getAddress());
 }
 
 main().catch((error) => {

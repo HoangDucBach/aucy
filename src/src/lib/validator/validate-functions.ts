@@ -2,7 +2,7 @@
 import * as validator from 'validator';
 
 // Internal Imports
-import { TMintTokenInfo, TNFTCollectionInfo } from '@/types';
+import { TMintTokenInfo, TCollectionInfo, TCreateCollection } from '@/types';
 import { ValidateError, ValidateErrorFactory, ValidateErrorType } from './validate-error';
 
 /**
@@ -10,7 +10,7 @@ import { ValidateError, ValidateErrorFactory, ValidateErrorType } from './valida
  * @param props TNFTCollectionInfo - extended TokenInfo
  * @returns boolean
  */
-export const validatePropsCreateNFTCollection = (props: TNFTCollectionInfo) => {
+export const validatePropsCreateNFTCollection = (props: TCreateCollection) => {
     if (!props) return false;
     const {
         name,
@@ -18,7 +18,6 @@ export const validatePropsCreateNFTCollection = (props: TNFTCollectionInfo) => {
         decimals,
         adminKey,
         kycKey,
-        freezeKey,
         supplyKey,
         maxSupply,
         customFees
@@ -33,12 +32,9 @@ export const validatePropsCreateNFTCollection = (props: TNFTCollectionInfo) => {
     if (kycKey && !validator.isEthereumAddress(kycKey)) {
         throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid kyc key');
     }
-    if (freezeKey && !validator.isEthereumAddress(freezeKey)) {
-        throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid freeze key');
-    }
-    if (supplyKey && !validator.isEthereumAddress(supplyKey)) {
-        throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid supply key');
-    }
+    // if (supplyKey && !validator.isEthereumAddress(supplyKey)) {
+    //     throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid supply key');
+    // }
 
 
     // Validate name
@@ -51,19 +47,10 @@ export const validatePropsCreateNFTCollection = (props: TNFTCollectionInfo) => {
         throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid symbol, symbol should be between 1 and 10 characters');
     }
 
-    // Validate decimals
-    if (decimals && decimals < 0 || decimals > 18) {
-        throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid decimals, decimals should be between 0 and 18');
-    }
 
     // Validate max supply
     if (maxSupply && maxSupply < 0) {
         throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid max supply, max supply should be greater than 0');
-    }
-
-    // Validate custom fees
-    if (customFees && !validator.isLength(customFees, { min: 1, max: 100 })) {
-        throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid custom fees, custom fees should be between 1 and 100 characters');
     }
 
     return true;

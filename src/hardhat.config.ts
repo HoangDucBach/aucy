@@ -1,7 +1,8 @@
 // External imports
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
+import "@typechain/hardhat";
 
 import envConfig from "dotenv";
 
@@ -16,12 +17,33 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: "0.8.24",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
       },
       {
         version: "0.8.20",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
       },
       {
         version: "0.8.19",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
       },
     ],
   },
@@ -36,6 +58,5 @@ const config: HardhatUserConfig = {
     },
   }
 };
-
 
 export default config;

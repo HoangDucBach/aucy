@@ -1,91 +1,56 @@
 'use client';
+
 // External imports
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { NextSeo } from 'next-seo';
+import Image from 'next/image';
+import {toast} from 'react-toastify';
 
 // Internal imports
-import NavBar from "@/components/Navbar";
-import { AllWalletsProvider } from "@/services/wallets/AllWalletsProvider";
-import { createAuction } from '@/entry-functions'; // Import hàm createAuction
-import { TAuctionCreation } from '@/types';
-import { useWalletInterface } from '@/services/wallets/useWalletInterface';
+import { WalletSelectionDialog } from "@/components/WalletSelectionDialog";
+import { Button } from '@/components/ui/button';
+import { useMedia } from '@/hooks';
+import clsx from 'clsx';
+import { SelectTokenMenu } from './create-auction/components/SelectTokenMenu';
 
-const Form = () => {
-    const { accountId, walletInterface } = useWalletInterface();
-
-    // State để quản lý dữ liệu form
-    const [auctionData, setAuctionData] = useState({
-        tokenId: '',
-        startingPrice: '',
-        endingPrice: '',
-        bidPeriod: '',
-        duration: ''
-    });
-
-    // Hàm xử lý khi form được submit
-    const handleSubmit = async (event: any) => {
-        event.preventDefault();
-        const auction = {
-            tokenId: auctionData.tokenId,
-            startingPrice: parseInt(auctionData.startingPrice),
-            endingPrice: parseInt(auctionData.endingPrice),
-            bidPeriod: parseInt(auctionData.bidPeriod),
-            duration: parseInt(auctionData.duration)
-        } satisfies TAuctionCreation;
-        try {
-            const result = await createAuction(auction, walletInterface);
-            console.log('Auction created:', result);
-        } catch (error) {
-            console.error('Error creating auction:', error);
-        }
-    };
-
-    // Hàm xử lý khi dữ liệu form thay đổi
-    const handleChange = (event: any) => {
-        const { name, value } = event.target;
-        setAuctionData({
-            ...auctionData,
-            [name]: value
-        });
-    };
-    useEffect(() => {
-        console.log('Account ID:', accountId);
-    }, [accountId]);
+function IntroSection() {
+    const { isMobile } = useMedia();
     return (
-        <div>
-            <form onSubmit={handleSubmit}>
+        <section id='intro' className='w-full relative flex flex-row justify-between gap-8 items-center'>
+            <div className='flex flex-col gap-8 z-10'>
+                <h1 className='text-5xl font-bold text-default-foreground break-words max-w-[10em]'>Aucy | Best Decentralized App for NFT Auction</h1>
+                <p>Aucy DApp is application that using amazing  Hedera technology for core</p>
                 <div>
-                    <label>Token ID:</label>
-                    <input type="text" name="tokenId" value={auctionData.tokenId} onChange={handleChange} required />
+                    <Button
+                    onClick={()=>{
+                        window.location.href='../create-auction'
+                    }}
+                    >Crate Auction now !</Button>
                 </div>
-                <div>
-                    <label>Starting Price:</label>
-                    <input type="number" name="startingPrice" value={auctionData.startingPrice} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label>Ending Price:</label>
-                    <input type="number" name="endingPrice" value={auctionData.endingPrice} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label>Bid Period:</label>
-                    <input type="number" name="bidPeriod" value={auctionData.bidPeriod} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label>Duration:</label>
-                    <input type="number" name="duration" value={auctionData.duration} onChange={handleChange} required />
-                </div>
-                <button type="submit">Create Auction</button>
-            </form>
-        </div>
-    )
+            </div>
+            <Image
+                src='/assets/three-rectangles.png'
+                alt='three-rectangles'
+                width={600}
+                height={600}
+                className={clsx(
+                    isMobile ? 'absolute top-1/2 -translate-y-1/2 translate-x-1/3 right-0 opacity-70' : 'relative',
+                )}
+            />
+        </section>
+    );
 }
 export default function Home() {
 
-
-
     return (
-        <AllWalletsProvider>
-            <Form/>
-            <NavBar />
-        </AllWalletsProvider>
+        <>
+            <NextSeo
+                title="Aucy | Home"
+                description="Welcome to the home page"
+            />
+            <IntroSection />
+
+        </>
     );
+
 }

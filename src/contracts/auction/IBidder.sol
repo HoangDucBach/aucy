@@ -2,6 +2,9 @@
 
 pragma solidity ^0.8.0;
 
+/// @title An interface for a bidder in an auction
+/// @author Hoang Duc Bach
+/// @notice You can use this contract to create a bidder in an auction
 interface IBidder {
     /*
     || STRUCTS

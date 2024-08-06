@@ -1,45 +1,37 @@
 'use client';
 
-import { AppBar, Button, Toolbar, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { useWalletInterface } from '@/services/wallets/useWalletInterface';
-import { WalletSelectionDialog } from './WalletSelectionDialog';
+import {
+    Navbar as NextNavbar,
+    NavbarBrand,
+    NavbarContent,
+} from "@nextui-org/react";
 
-export default function NavBar() {
-  const [open, setOpen] = useState(false);
-  const { accountId, walletInterface } = useWalletInterface();
+// Internal imports
+import { ThemeSwitch } from "./ThemeSwitch";
+import Image from "next/image";
+import { MyWalletShortcut } from "./MyWalletShortcut";
+import { ToolShortcut } from "./ToolShortcut";
 
-  const handleConnect = async () => {
-    if (accountId) {
-      walletInterface.disconnect();
-    } else {
-      setOpen(true);
-    }
-  };
-
-  useEffect(() => {
-    if (accountId) {
-      setOpen(false);
-    }
-  }, [accountId])
-
-  return (
-    <AppBar position='relative'>
-      <Toolbar>
-        <Typography variant="h6" color="white" pl={1} noWrap>
-          Happy Building
-        </Typography>
-        <Button
-          variant='contained'
-          sx={{
-            ml: "auto"
-          }}
-          onClick={handleConnect}
+export default function Navbar() {
+    return (
+        <NextNavbar
+            maxWidth="2xl"
+            className="py-2"
+            classNames={{
+                base: 'bg-layout-background'
+            }}
         >
-          {accountId ? `Connected: ${accountId}` : 'Connect Wallet'}
-        </Button>
-      </Toolbar>
-      <WalletSelectionDialog open={open} setOpen={setOpen} onClose={() => setOpen(false)} />
-    </AppBar>
-  )
+            <NavbarBrand className="flex flex-row items-center gap-4 cursor-pointer" onClick={()=>window.location.href='/'}>
+                <Image src='/aucy.svg' alt="Aucy" width={32} height={32} />
+                <p className="font-bold text-inherit text-2xl">Aucy</p>
+            </NavbarBrand>
+            <NavbarContent
+                justify="end"
+            >
+                <ThemeSwitch />
+                <ToolShortcut />
+                <MyWalletShortcut />
+            </NavbarContent>
+        </NextNavbar>
+    );
 }
