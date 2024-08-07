@@ -95,7 +95,7 @@ export class WalletConnectWallet implements WalletInterface {
         return AccountId.fromString(this.getSigner().getAccountId().toString());
     }
 
-    public getPublicKey(): PublicKey | null {
+    public getPublicKey(): PublicKey {
         new AccountInfoQuery()
             .setAccountId(this.getAccountId())
             .execute(hederaClient)
@@ -105,7 +105,7 @@ export class WalletConnectWallet implements WalletInterface {
             .catch((error) => {
                 console.error(error);
             });
-        return null;
+        throw new Error('Failed to get public key');
     }
 
     async transferHBAR(toAddress: AccountId, amount: number) {

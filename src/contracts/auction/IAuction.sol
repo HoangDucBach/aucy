@@ -15,9 +15,11 @@ interface IAuction {
     /*
     || STRUCTS
     */
-   
+
     /**
      * @dev Create an auction for a single NFT
+     * @param id The address of the auction.
+     * @param topicId The address of the topic.
      * @param name The name of the auction.
      * @param description The description of the auction.
      * @param seller The address of the seller who is auctioning the item.
@@ -37,6 +39,8 @@ interface IAuction {
      *
      */
     struct Auction {
+        address id;
+        address topicId;
         string name;
         string description;
         address seller;
@@ -56,6 +60,25 @@ interface IAuction {
     }
 
     /*
+    || REQUIRE FUNCTIONS
+    */
+    /**
+     * @dev Get the receiver of the auction
+     * @param _auctionId The address of the auction.
+     */
+    function getReceivers(
+        address _auctionId
+    ) external view returns (address[] memory);
+
+    /**
+     * @dev Get the percentage of the auction
+     * @param _auctionId The address of the auction.
+     */
+    function getPercentages(
+        address _auctionId
+    ) external view returns (uint16[] memory);
+
+    /*
     || EVENTS
     */
 
@@ -65,16 +88,12 @@ interface IAuction {
      * @param seller The address of the seller who is auctioning the item.
      * @param tokenAddress The address of the NFT seller.
      * @param tokenId The ID of the token to auction.
-     * @param startingPrice The starting price of the auction.
-     * @param startedAt The timestamp when the auction started.
      */
     event AuctionCreated(
         address auctionId,
         address seller,
         address tokenAddress,
-        uint256 tokenId,
-        uint256 startingPrice,
-        uint256 startedAt
+        uint256 tokenId
     );
 
     /**

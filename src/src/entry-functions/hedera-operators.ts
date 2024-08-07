@@ -1,16 +1,18 @@
 // External imports
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { PublicKey, TokenCreateTransaction, TokenId, TokenInfo, TokenMintTransaction, TokenSupplyType, TokenType } from "@hashgraph/sdk";
+import { PublicKey, TokenCreateTransaction, TokenId, TokenInfo, TokenMintTransaction, TokenSupplyType, TokenType, TopicCreateTransaction, TopicInfoQuery, TopicMessageQuery, TopicMessageSubmitTransaction } from "@hashgraph/sdk";
 
 // Internal imports
 import { appConfig } from "@/config";
-import { TQuery, AccountError, AccountErrorType, InternalError, TMintTokenInfo, TCreateCollection } from "@/types";
+import { TQuery, AccountError, AccountErrorType, InternalError, TMintTokenInfo, TCreateCollection, TCollectionInfo } from "@/types";
 import { keysToCamelCase } from "@/lib/helpers";
 import pinataSdk from "@/utils/pinataSdk";
 import { HEDERA_PRIVATE_KEY } from "@/config/constants";
 import { validatePropsCreateNFTCollection } from "@/lib/validator";
 import { WalletConnectWallet } from "@/services/wallets/walletconnect/walletConnectClient";
 import { getPublicKey } from "@/utils/keyHelpers";
+import client from "@/utils/hederaClient";
+import { getMetadata } from "./ipfs-operators";
 
 /**
  * Get my collections
@@ -85,6 +87,26 @@ export async function getNftInfo(tokenId: string, serial: any, query?: TQuery): 
     }
 }
 
+export async function getCollections(query?: TQuery): Promise<TCollectionInfo[]> {
+    try {
+        const endpoint = `${appConfig.constants.HEDERA_API_ENDPOINT}/tokens`;
+        const res = await axios.get(endpoint, {
+            params: {
+                type: TokenType.NonFungibleUnique,
+                ...query
+            }
+        });
+        const data = res.data.tokens;
+        const collections: TCollectionInfo[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const collection = keysToCamelCase<TCollectionInfo>(data[i]);
+            collections.push(collection);
+        }
+        return collections;
+    } catch (error: any) {
+        return [];
+    }
+}
 /**
  * Get token info
  * @param tokenId - Hedera token ID
@@ -149,7 +171,7 @@ export async function createCollection(_tokenInfo: TCreateCollection, walletInte
     try {
 
         const operatorKey = getPublicKey(walletInterface.getSigner().getAccountId());
-        if(!operatorKey) throw new Error('Failed to get your public key');
+        if (!operatorKey) throw new Error('Failed to get your public key');
 
         const {
             name,
@@ -219,5 +241,92 @@ export async function mintNFT(_mintTokenInfo: TMintTokenInfo, walletInterface: a
         return await signedTransaction.executeWithSigner(walletInterface.getSigner());
     } catch (error: any) {
         throw new Error("Error minting NFT");
+    }
+}
+
+/*
+|| TOPICS FUNCTIONS
+*/
+
+/**
+ * Create topics
+ */
+export async function createTopic(walletInterface: WalletConnectWallet) {
+    if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
+    try {
+        const operatorKey = walletInterface.getPublicKey();
+        const topicCreateTransaction = new TopicCreateTransaction()
+        if (operatorKey) topicCreateTransaction.setAdminKey(operatorKey);
+
+        const txResponse = await topicCreateTransaction.executeWithSigner(walletInterface.getSigner());
+
+        return txResponse.transactionId;
+    } catch (error: any) {
+        throw new Error("Error creating topic");
+    }
+}
+
+/**
+ * Submit message to topic
+ * @param topicId
+ * @param message
+ * @param walletInterface
+ * @returns boolean
+ */
+export async function submitAMessage(topicId: string, message: string, walletInterface: WalletConnectWallet) {
+    if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
+    try {
+        const transaction = new TopicMessageSubmitTransaction()
+            .setTopicId(topicId)
+            .setMessage(message)
+
+        const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
+
+        const receipt = await txResponse.getReceiptWithSigner(walletInterface.getSigner());
+
+        return receipt.status;
+    } catch (error: any) {
+        throw new Error("Error submitting message to topic");
+    }
+}
+
+/**
+ * Get topic info
+ * @param topicId
+ */
+export async function getTopicInfo(topicId: string, walletInterface: WalletConnectWallet) {
+    if (!topicId) throw new Error('Topic ID is required to get topic info');
+
+    try {
+        const query = new TopicInfoQuery()
+            .setTopicId(topicId);
+
+        const info = await query.executeWithSigner(walletInterface.getSigner());
+        return info;
+    } catch (error: any) {
+        throw new Error('Failed to get topic info');
+    }
+}
+
+/**
+ * Get topic messages
+ * @param topicId
+ */
+export async function getTopicMessages(topicId: string, walletInterface: WalletConnectWallet) {
+    if (!topicId) throw new Error('Topic ID is required to get topic messages');
+    const messages = []
+    try {
+        new TopicMessageQuery()
+            .setTopicId(topicId)
+            .setStartTime(0)
+            .subscribe(client, () => {
+
+            }, (message) => {
+                // message is a Uint8Array
+                const decodedMessage = new TextDecoder().decode(message.contents);
+                messages.push(decodedMessage);
+            });
+    } catch (error: any) {
+        throw new Error('Failed to get topic messages');
     }
 }

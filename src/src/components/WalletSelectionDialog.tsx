@@ -1,10 +1,13 @@
 'use client';
-import { openWalletConnectModal } from "@/services/wallets/walletconnect/walletConnectClient";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Divider } from "@nextui-org/react";
+import { FaWallet } from "react-icons/fa";
 
 // Internal imports
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useMedia } from "@/hooks";
+import { openWalletConnectModal } from "@/services/wallets/walletconnect/walletConnectClient";
+
 interface WalletSelectionDialogProps {
     open?: boolean;
     setOpen?: (value: boolean) => void;
@@ -13,6 +16,7 @@ interface WalletSelectionDialogProps {
 
 export const WalletSelectionDialog = (props: WalletSelectionDialogProps) => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const { isMobile } = useMedia();
     return (
         <>
             <Button
@@ -20,8 +24,10 @@ export const WalletSelectionDialog = (props: WalletSelectionDialogProps) => {
                 variant="solid"
                 color="primary"
                 radius="full"
+                isIconOnly={isMobile}
+                startContent={<FaWallet size={16} />}
             >
-                Connect Wallet
+                {isMobile ? null : 'Connect Wallet'}
             </Button>
             <Modal
                 isOpen={isOpen}

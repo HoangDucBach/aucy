@@ -80,4 +80,12 @@ abstract contract AAuction is IAuction, ISeller, IBidder, IReceiver, Donatable {
         }
         return _auctions;
     }
+
+    function getReceivers(address _auctionId) override external view returns (address[] memory) {
+        return auctions[_auctionId].receivers;
+    }
+
+    function getPercentages(address _auctionId) override external view returns (uint16[] memory) {
+        return auctions[_auctionId].percentages;
+    }
 }

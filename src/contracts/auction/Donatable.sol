@@ -29,4 +29,10 @@ interface Donatable {
      * @param _auctionId The address of the auction to donate.
      */
     function donate(address _auctionId) external payable;
+
+    /**
+     * @dev Get donors of an auction
+     * @param _auctionId The address of the auction to get donors.
+     */
+    function getDonors(address _auctionId) external view returns (address[] memory);
 }

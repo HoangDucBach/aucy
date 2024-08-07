@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { NFTAuctionManager, ERC721Mock } from "../typechain-types";
-import { erc721 } from "../typechain-types/@openzeppelin/contracts/token";
+
 
 async function deployContractFixture() {
     const ERC721MockFactory = await ethers.getContractFactory("ERC721Mock");
@@ -28,24 +28,32 @@ describe("NFTAuctionManager", function () {
     let receiver2: any;
     let tokenAddress: string;
     let tokenId: number;
+    let topicId: string;
     let startingPrice: any;
     let minBidIncrement: any;
     let endingPrice: any;
     let endingAt: any;
+    let donation: any;
     let receivers: string[];
     let percentages: number[];
 
     beforeEach(async function () {
         ({ erc721Mock, nftAuctionManager } = await loadFixture(deployContractFixture));
+
+        // Get the signers
         [owner, receiver1, receiver2, bidder1, bidder2] = await ethers.getSigners();
+
+        // Mock the auction details
         auctionName = "Test Auction";
         auctionDescription = "This is a test auction";
         tokenAddress = await erc721Mock.getAddress();
         tokenId = 1;
+        topicId = tokenAddress;
         startingPrice = ethers.parseEther("1.0");
         minBidIncrement = ethers.parseEther("0.1");
         endingPrice = ethers.parseEther("5.0");
         endingAt = new Date().getTime() + 60; // 60 seconds
+        donation = ethers.parseEther("0.0");
         receivers = [receiver1.address, receiver2.address];
         percentages = [50, 50];
 
@@ -73,6 +81,7 @@ describe("NFTAuctionManager", function () {
                 auctionDescription,
                 tokenAddress,
                 tokenId,
+                topicId,
                 startingPrice,
                 minBidIncrement,
                 endingPrice,
@@ -86,20 +95,22 @@ describe("NFTAuctionManager", function () {
             const auctionId = receipt?.logs[0]?.args?.auctionId;
             const auction = await nftAuctionManager.auctions(auctionId);
             const auctionDetails = await nftAuctionManager.auctions(auctionId);
-            console.log(auctionDetails);
 
+            expect(auction.id, "Auction ID does not match").to.equal(auctionId);
             expect(auction.name, "Name does not match").to.equal(auctionName);
             expect(auction.description, "Description does not match").to.equal(auctionDescription);
+            expect(auction.tokenId, "Token ID does not match").to.equal(tokenId);
+            expect(auction.tokenAddress, "Token address does not match").to.equal(tokenAddress);
+            expect(auction.topicId, "Topic ID does not match").to.equal(topicId);
             expect(auction.seller, "Seller does not match").to.equal(owner.address);
             expect(auction.startingPrice, "Starting price does not match").to.equal(startingPrice);
             expect(auction.minBidIncrement, "Minimum bid increment does not match").to.equal(minBidIncrement);
             expect(auction.endingPrice, "Ending price does not match").to.equal(endingPrice);
             expect(auction.startedAt, "Started at does not match").to.be.above(0);
-            expect(auction.endingAt, "Ended at does not match").to.equal(endingAt);
-            expect(auction.endedAt, "Ended at does not match").to.equal(0);
-            expect(auction.tokenAddress, "Token address does not match").to.equal(tokenAddress);
-            expect(auction.tokenId, "Token ID does not match").to.equal(tokenId);
-
+            expect(auction.endingAt, "Ending at does not match").to.equal(endingAt);
+            expect(auction.donation, "Donation does not match").to.equal(donation);
+            expect(await nftAuctionManager.getReceivers(auctionId), "Receivers does not match").to.deep.equal(receivers);
+            expect(await nftAuctionManager.getPercentages(auctionId), "Percentages does not match").to.deep.equal(percentages);
 
 
             expect({ ...auctionDetails }).to.deep.equal({ ...auction });
@@ -113,6 +124,7 @@ describe("NFTAuctionManager", function () {
                 auctionDescription,
                 tokenAddress,
                 tokenId,
+                topicId,
                 startingPrice,
                 minBidIncrement,
                 endingPrice,
@@ -127,7 +139,7 @@ describe("NFTAuctionManager", function () {
             const auctionId = receipt.logs[0].args.auctionId;
 
             const bidValue = ethers.parseEther("1.5");
-            const bidTx = await nftAuctionManager.connect(bidder1).placeBid(auctionId, bidValue, { value: bidValue });
+            const bidTx = await nftAuctionManager.connect(bidder1).placeBid(auctionId, { value: bidValue });
             await bidTx.wait();
 
             // Check balance before ending the auction of contract 
@@ -150,9 +162,6 @@ describe("NFTAuctionManager", function () {
             // Check the receiver balance
             const afterReceiver1Balance = await ethers.provider.getBalance(receiver1.address);
             const receiver1Balance = afterReceiver1Balance - initialReceiver1Balance;
-            console.log("Initial Receiver1 Balance: ", initialReceiver1Balance.toString());
-            console.log("After Receiver1 Balance: ", afterReceiver1Balance.toString());
-            console.log("Receiver1 Balance: ", receiver1Balance.toString());
             const halfBidValue = BigInt(bidValue) / BigInt(2);
 
             expect(receiver1Balance).to.equal(halfBidValue);
@@ -167,6 +176,7 @@ describe("NFTAuctionManager", function () {
                 auctionDescription,
                 tokenAddress,
                 tokenId,
+                topicId,
                 startingPrice,
                 minBidIncrement,
                 endingPrice,
@@ -189,6 +199,7 @@ describe("NFTAuctionManager", function () {
                 auctionDescription,
                 tokenAddress,
                 tokenId,
+                topicId,
                 startingPrice,
                 minBidIncrement,
                 endingPrice,
@@ -201,7 +212,7 @@ describe("NFTAuctionManager", function () {
             const auctionDetails = await nftAuctionManager.getAuction(auctionId);
 
             const auctions = await nftAuctionManager.getAuctions();
-            expect(auctions.length).to.equal(1);
+            expect(auctions.length, "Length of auctions not match").to.equal(1);
             expect(auctions[0]).to.deep.equal(auctionDetails);
         });
     });
@@ -213,6 +224,7 @@ describe("NFTAuctionManager", function () {
                 auctionDescription,
                 tokenAddress,
                 tokenId,
+                topicId,
                 startingPrice,
                 minBidIncrement,
                 endingPrice,
@@ -225,7 +237,7 @@ describe("NFTAuctionManager", function () {
             const auctionId = receipt.logs[0].args.auctionId;
 
             const bidValue = ethers.parseEther("1.5");
-            const bidTx = await nftAuctionManager.connect(receiver1).placeBid(auctionId, bidValue, { value: bidValue });
+            const bidTx = await nftAuctionManager.connect(receiver1).placeBid(auctionId, { value: bidValue });
             await bidTx.wait();
 
             const auction = await nftAuctionManager.auctions(auctionId);
@@ -240,6 +252,7 @@ describe("NFTAuctionManager", function () {
                 auctionDescription,
                 tokenAddress,
                 tokenId,
+                topicId,
                 startingPrice,
                 minBidIncrement,
                 endingPrice,
@@ -252,7 +265,7 @@ describe("NFTAuctionManager", function () {
             const auctionId = receipt.logs[0].args.auctionId;
 
             const bidValue = ethers.parseEther("1.5");
-            const bidTx = await nftAuctionManager.connect(receiver1).placeBid(auctionId, bidValue, { value: bidValue });
+            const bidTx = await nftAuctionManager.connect(receiver1).placeBid(auctionId, { value: bidValue });
             await bidTx.wait();
 
             const withdrawTx = await nftAuctionManager.connect(receiver1).withdrawBid(auctionId);
@@ -265,18 +278,123 @@ describe("NFTAuctionManager", function () {
     describe("Special Operator", function () {
         it("should update the contract balance after a donation", async function () {
             const donateValue = ethers.parseEther("5.0");
-
-            const tx = await nftAuctionManager.connect(owner).donate({ value: donateValue });
+            const txAuction = await nftAuctionManager.connect(owner).createAuction(
+                auctionName,
+                auctionDescription,
+                tokenAddress,
+                tokenId,
+                topicId,
+                startingPrice,
+                minBidIncrement,
+                endingPrice,
+                endingAt,
+                receivers,
+                percentages
+            );
+            const receiptAuction = await txAuction.wait();
+            if (!receiptAuction) throw new Error("No receipt");
+            const auctionId = receiptAuction.logs[0].args.auctionId;
+            const initialContractBalance = await ethers.provider.getBalance(nftAuctionManager.target);
+            const tx = await nftAuctionManager.connect(owner).donate(auctionId, { value: donateValue });
             await tx.wait();
 
-            const contractBalance = await ethers.provider.getBalance(nftAuctionManager.target);
-            const contractDonation = await nftAuctionManager.donation();
-            expect(contractBalance).to.equal(donateValue);
-            expect(contractDonation).to.equal(donateValue);
+            const afterContractBalance = await ethers.provider.getBalance(nftAuctionManager.target);
+            const contractDonation = afterContractBalance - initialContractBalance;
+            expect(contractDonation, "Contract balance should be updated").to.equal(donateValue);
+        });
+    });
+    describe("Additional Tests", function () {
+        it("should not allow non-owner to create an auction", async function () {
+            await expect(
+                nftAuctionManager.connect(bidder1).createAuction(
+                    auctionName,
+                    auctionDescription,
+                    tokenAddress,
+                    tokenId,
+                    topicId,
+                    startingPrice,
+                    minBidIncrement,
+                    endingPrice,
+                    endingAt,
+                    receivers,
+                    percentages
+                )
+            ).to.be.revertedWith("Only NFT owner can create an auction");
+        });
 
+        it("should not allow non-owner to end an auction", async function () {
+            const tx = await nftAuctionManager.connect(owner).createAuction(
+                auctionName,
+                auctionDescription,
+                tokenAddress,
+                tokenId,
+                topicId,
+                startingPrice,
+                minBidIncrement,
+                endingPrice,
+                endingAt,
+                receivers,
+                percentages
+            );
             const receipt = await tx.wait();
-            const donors = await nftAuctionManager.donors(owner.address);
-            expect(donors).to.equal(donateValue);
+            const auctionId = receipt.logs[0].args.auctionId;
+
+            await expect(
+                nftAuctionManager.connect(bidder1).endAuction(auctionId)
+            ).to.be.revertedWith("Only auction owner can perform this action");
+        });
+
+        it("should not allow bid lower than starting price or increment", async function () {
+            const tx = await nftAuctionManager.connect(owner).createAuction(
+                auctionName,
+                auctionDescription,
+                tokenAddress,
+                tokenId,
+                topicId,
+                startingPrice,
+                minBidIncrement,
+                endingPrice,
+                endingAt,
+                receivers,
+                percentages
+            );
+            const receipt = await tx.wait();
+            const auctionId = receipt.logs[0].args.auctionId;
+
+            const lowBidValue = ethers.parseEther("0.5");
+            await expect(
+                nftAuctionManager.connect(bidder1).placeBid(auctionId, { value: lowBidValue })
+            ).to.be.revertedWith("Bid amount is not greater than the starting price");
+
+            const validBidValue = ethers.parseEther("1.0");
+            await nftAuctionManager.connect(bidder1).placeBid(auctionId, { value: validBidValue });
+
+            const lowerIncrementBidValue = ethers.parseEther("1.05");
+            await expect(
+                nftAuctionManager.connect(bidder2).placeBid(auctionId, { value: lowerIncrementBidValue })
+            ).to.be.revertedWith("Bid amount is not greater than the min bid increment");
+        });
+        
+        it("should not allow non-owner to cancel an auction", async function () {
+            const tx = await nftAuctionManager.connect(owner).createAuction(
+                auctionName,
+                auctionDescription,
+                tokenAddress,
+                tokenId,
+                topicId,
+                startingPrice,
+                minBidIncrement,
+                endingPrice,
+                endingAt,
+                receivers,
+                percentages
+            );
+            const receipt = await tx.wait();
+            const auctionId = receipt.logs[0].args.auctionId;
+
+            await expect(
+                nftAuctionManager.connect(bidder1).cancelAuction(auctionId)
+            ).to.be.revertedWith("Only auction owner can perform this action");
         });
     });
 });

@@ -17,6 +17,15 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
     title: appConfig.constants.METADATA.name,
     description: appConfig.constants.METADATA.description,
+    icons: [
+        { 
+            href: "/favicon.ico",
+            sizes: "16x16",
+            type: "image/x-icon",
+            url: "/favicon.ico",
+         },
+    ],
+
 };
 
 export const viewport: Viewport = {

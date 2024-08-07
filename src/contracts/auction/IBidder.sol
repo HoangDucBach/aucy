@@ -64,12 +64,10 @@ interface IBidder {
     /**
      * @dev Place a bid in an auction
      * @param _auctionId The address of the auction to bid in.
-     * @param _amount The amount to bid.
      * @return bool True if the bid is successful
      */
     function placeBid(
-        address _auctionId,
-        uint256 _amount
+        address _auctionId
     ) external payable returns (bool);
 
     /**

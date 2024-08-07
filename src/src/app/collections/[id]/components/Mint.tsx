@@ -11,12 +11,12 @@ import { BsFiletypeJson } from "react-icons/bs";
 import { useWalletInterface } from "@/services/wallets/useWalletInterface";
 import { mintNFT } from "@/entry-functions";
 import { useCollection } from "../context";
+import { AccountId, PublicKey } from "@hashgraph/sdk";
 
 export function Mint() {
     const { walletInterface } = useWalletInterface();
     const collection = useCollection();
-
-
+    
     const [amount, setAmount] = React.useState<number>(0);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [metadata, setMetadata] = React.useState<any>(null);
@@ -51,7 +51,7 @@ export function Mint() {
             setLoading(false);
         }
     };
-
+    
     return (
         <div className="flex flex-col gap-8 w-full">
             <Input

@@ -13,6 +13,7 @@
     "@hashgraph/sdk": "^2.48.1",
     "@metamask/sdk-react": "^0.27.0",
     "@nextui-org/react": "^2.4.6",
+    "@nextui-org/use-infinite-scroll": "^2.1.5",
     "@pinata/sdk": "^2.1.0",
     "@walletconnect/modal": "^2.6.2",
     "@walletconnect/sign-client": "^2.14.0",

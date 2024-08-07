@@ -19,6 +19,7 @@ import { WalletConnectWallet } from "@/services/wallets/walletconnect/walletConn
 
 const MAX_GAS = 1_000_000;
 const MAX_ATTEMPTS = 10;
+const contractInterface = new ethers.Interface(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI);
 /**
  * Create auction
  * @param _auction - auction info
@@ -47,7 +48,7 @@ export async function createAuction(_auction: TAuctionCreation, walletInterface:
     if (!endingAt) throw new Error('Ending time is required');
 
     try {
-        
+
         const transaction = await new ContractExecuteTransaction()
             .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
             .setGas(MAX_GAS)
@@ -174,6 +175,52 @@ export async function getAuction(auctionId: string) {
     }
 }
 
+/**
+ * Get auctions
+ */
+export async function getAuctions() {
+    try {
+        const transaction = await new ContractCallQuery()
+            .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+            .setGas(MAX_GAS)
+            .setMaxAttempts(MAX_ATTEMPTS)
+            .setMaxQueryPayment(new Hbar(10))
+            .setFunction("getAuctions", new ContractFunctionParameters())
+            .execute(client);
+
+        const result = transaction;
+        const resultArray = contractInterface.decodeFunctionResult("getAuctions", result.asBytes())[0];
+
+        const auctions: TAuction[] = [];
+
+        resultArray.forEach((auction: any) => {
+            let index = 0;
+            auctions.push({
+                name: auction[index++],
+                description: auction[index++],
+                seller: auction[index++],
+                tokenAddress: auction[index++],
+                tokenId: BigInt(auction[index++]),
+                startingPrice: BigInt(auction[index++]),
+                minBidIncrement: BigInt(auction[index++]),
+                endingPrice: BigInt(auction[index++]),
+                startedAt: BigInt(auction[index++]),
+                endingAt: BigInt(auction[index++]),
+                endedAt: BigInt(auction[index++]),
+                highestBid: BigInt(auction[index++]),
+                highestBidder: auction[index++],
+                donation: auction[index++],
+                receivers: auction[index++],
+                percentages: auction[index++],
+            });
+        });
+
+        return auctions;
+
+    } catch (error: any) {
+        console.error('Error getting auction', error);
+    }
+}
 /**
  * Get bids for an auction
  * @param auctionId - The ID of the auction

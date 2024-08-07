@@ -12,8 +12,17 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 // Internal imports
 import "./AAuction.sol";
+import "./Helpers.sol";
 
 contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
+    /*
+     **************************************************
+     *                                                *
+     *               || BASE MODIFIERS                *
+     *                                                *
+     **************************************************
+     */
+
     /**
      * Modifier to check if the caller is the owner of the NFT
      */
@@ -36,11 +45,52 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
         _;
     }
 
+    /*
+     **************************************************
+     *                                                *
+     *               || AUCTION OPERATORS             *
+     *                                                *
+     **************************************************
+     */
+
+    /**
+     * @dev Create a default function, only used for internal purposes
+     * @return A default auction
+     */
+    function _createDefaultFunction() internal view returns (Auction memory) {
+        // Create default function
+        Auction memory _auction = Auction({
+            id: address(0),
+            topicId: address(0),
+            name: "Auction",
+            description: "",
+            seller: msg.sender,
+            tokenAddress: address(0),
+            tokenId: 0,
+            startingPrice: 0,
+            minBidIncrement: 0,
+            endingPrice: 0,
+            startedAt: block.timestamp,
+            endingAt: 0,
+            endedAt: 0,
+            highestBid: 0,
+            highestBidder: address(0),
+            donation: 0,
+            receivers: new address[](1),
+            percentages: new uint16[](1)
+        });
+
+        _auction.receivers[0] = msg.sender;
+        _auction.percentages[0] = 100;
+        return _auction;
+    }
+
     function createAuction(
         string memory _name,
         string memory _description,
         address _tokenAddress,
         uint256 _tokenId,
+        address _topicId,
         uint256 _startingPrice,
         uint256 _minBidIncrement,
         uint256 _endingPrice,
@@ -58,7 +108,7 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
             "Receivers and percentages length mismatch"
         );
         for (uint256 i = 0; i < _receivers.length; i++) {
-            require(_receivers[i] != address(0), "Invalid receiver address");
+            Helpers.checkIsAddress(_receivers[i]);
             require(
                 _percentages[i] > 0 && _percentages[i] <= 100,
                 "Percentage must be between 1 and 100"
@@ -69,64 +119,38 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
             uint160(
                 uint256(
                     keccak256(
-                        abi.encodePacked(
-                            block.timestamp,
-                            msg.sender,
-                            _tokenAddress,
-                            _tokenId
-                        )
+                        abi.encodePacked(msg.sender, _tokenAddress, _tokenId)
                     )
                 )
             )
         );
-        // Assert that the auctionId is not already used
-        assert(auctions[auctionId].seller == address(0));
 
-        auctionIds.push(auctionId);
-        auctions[auctionId] = Auction({
-            name: _name,
-            description: _description,
-            seller: msg.sender,
-            tokenAddress: _tokenAddress,
-            tokenId: _tokenId,
-            startingPrice: _startingPrice,
-            minBidIncrement: _minBidIncrement,
-            endingPrice: _endingPrice,
-            startedAt: block.timestamp,
-            endingAt: _endingAt,
-            endedAt: 0,
-            highestBid: 0,
-            highestBidder: address(0),
-            donation: 0,
-            receivers: _receivers,
-            percentages: _percentages
-        });
+        auctions[auctionId] = _createDefaultFunction();
 
-        // Assert that the auction was created correctly
-        assert(auctions[auctionId].seller == msg.sender);
-        assert(auctions[auctionId].tokenAddress == _tokenAddress);
-        assert(auctions[auctionId].tokenId == _tokenId);
-        assert(auctions[auctionId].startingPrice == _startingPrice);
-        assert(auctions[auctionId].minBidIncrement == _minBidIncrement);
-        assert(auctions[auctionId].endingPrice == _endingPrice);
-        assert(auctions[auctionId].startedAt == block.timestamp);
-        assert(auctions[auctionId].endingAt == _endingAt);
-        assert(auctions[auctionId].endedAt == 0);
-        assert(auctions[auctionId].highestBid == 0);
-        assert(auctions[auctionId].highestBidder == address(0));
-        assert(auctions[auctionId].donation == 0);
-        assert(auctions[auctionId].receivers.length == _receivers.length);
-        assert(auctions[auctionId].percentages.length == _percentages.length);
+        if (Helpers.checkIsAddress(auctionId)) {
+            auctions[auctionId].id = auctionId;
+            auctionIds.push(auctionId);
+        }
+        if (Helpers.checkIsString(_name)) auctions[auctionId].name = _name; // Update name
+        if (Helpers.checkIsString(_description))
+            auctions[auctionId].description = _description; // Update description
+        if (Helpers.checkIsAddress(_tokenAddress))
+            auctions[auctionId].tokenAddress = _tokenAddress; // Update tokenAddress
+        if (_tokenId > 0) auctions[auctionId].tokenId = _tokenId; // Update tokenId
+        if (Helpers.checkIsAddress(_topicId))
+            auctions[auctionId].topicId = _topicId; // Update topicId
+        if (_startingPrice >= 0)
+            auctions[auctionId].startingPrice = _startingPrice; // Update startingPrice
+        if (_minBidIncrement > 0)
+            auctions[auctionId].minBidIncrement = _minBidIncrement; // Update minBidIncrement
+        if (_endingPrice > 0) auctions[auctionId].endingPrice = _endingPrice; // Update endingPrice
+        if (_endingAt > 0) auctions[auctionId].endingAt = _endingAt; // Update endingAt
+        if (_receivers.length > 0) auctions[auctionId].receivers = _receivers; // Update receivers
+        if (_percentages.length > 0)
+            auctions[auctionId].percentages = _percentages; // Update percentages
 
         // Emit an event to notify that an auction has been created
-        emit AuctionCreated(
-            auctionId,
-            msg.sender,
-            _tokenAddress,
-            _tokenId,
-            _startingPrice,
-            block.timestamp
-        );
+        emit AuctionCreated(auctionId, msg.sender, _tokenAddress, _tokenId);
 
         // Return the address of the created auction
         return auctionId;
@@ -242,55 +266,54 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
     }
 
     function placeBid(
-        address _auctionId,
-        uint256 _amount
+        address _auctionId
     ) external payable override onlyAuctionOnGoing(_auctionId) returns (bool) {
         // Retrieve the auction from the auctions mapping
         Auction storage auction = auctions[_auctionId];
 
         // Check if the bid amount is greater than the highest bid
         require(
-            _amount > auction.highestBid,
+            msg.value > auction.highestBid,
             "Bid amount is not greater than the highest bid"
         );
 
         // Check if the bid amount is greater than the starting price
         require(
-            _amount >= auction.startingPrice,
+            msg.value >= auction.startingPrice,
             "Bid amount is not greater than the starting price"
         );
         // Check amount is greater than min bid increment
         require(
-            _amount >= auction.highestBid + auction.minBidIncrement,
+            msg.value >= auction.highestBid + auction.minBidIncrement,
             "Bid amount is not greater than the min bid increment"
         );
 
         // Check if the bid amount is less than the ending price
         require(
-            _amount <= auction.endingPrice,
+            msg.value <= auction.endingPrice,
             "Bid amount is not less than the ending price"
         );
 
         // Transfer the bid amount to the contract
         require(
-            msg.value == _amount,
-            "The value sent is not equal to the bid amount"
+            msg.value >0,
+            "The value sent is not greater than 0"
         );
 
         // Update the highest bid and highest bidder of the auction
-        auction.highestBid = _amount;
+        auction.highestBid = msg.value;
         auction.highestBidder = msg.sender;
 
         // Update bids
         bids[_auctionId][msg.sender] = Bid({
             bidder: msg.sender,
             auctionId: _auctionId,
-            amount: _amount,
+            amount: msg.value,
             timestamp: block.timestamp
         });
 
         // Emit an event to notify that a bid has been placed
-        emit BidPlaced(msg.sender, _auctionId, _amount, block.timestamp);
+        emit BidPlaced(msg.sender, _auctionId, msg.value, block.timestamp);
 
         // Return true to indicate that the bid was successfully placed
         return true;
@@ -346,7 +369,11 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
     }
 
     /*
-    || Donatable functions
+     **************************************************
+     *                                                *
+     *               || Donatable functions           *
+     *                                                *
+     **************************************************
      */
 
     function donate(address _auctionId) external payable override {
@@ -362,9 +389,17 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
         donors[_auctionId][msg.sender] += msg.value;
     }
 
+    function getDonors(
+        address _auctionId
+    ) external view override returns (address[] memory) {}
+
     /*
-    || RECEIVER FUNCTIONS
-    */
+     **************************************************
+     *                                                *
+     *               || RECEIVE FUNCTIONS             *
+     *                                                *
+     **************************************************
+     */
     function addReceiver(
         address _auctionId,
         address _receiver,
@@ -504,8 +539,12 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
     }
 
     /*
-    || RECEIVE AND FALLBACK FUNCTIONS
-    */
+     **************************************************
+     *                                                *
+     *               || RECEIVE AND FALLBACK          *
+     *                                                *
+     **************************************************
+     */
     receive() external payable {}
 
     fallback() external payable {}
