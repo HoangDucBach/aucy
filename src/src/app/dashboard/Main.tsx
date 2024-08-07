@@ -5,10 +5,11 @@ import React from "react";
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { Tabs, Tab, Input } from "@nextui-org/react";
 import dynamic from 'next/dynamic';
-const DynamicAuctionsContainer = dynamic(() => import('./AuctionsContainer'), {
+import TransactionContainer from "./components/TransactionContainer";
+const DynamicAuctionsContainer = dynamic(() => import('./components/AuctionsContainer'), {
     ssr: false
 });
-const DynamicCollectionsContainer = dynamic(() => import('./CollectionsContainer'), {
+const DynamicCollectionsContainer = dynamic(() => import('./components/CollectionsContainer'), {
     ssr: false
 });
 export default function Main() {
@@ -41,18 +42,25 @@ export default function Main() {
                 value={searchParam}
                 onChange={(e) => setSearchParam(e.target.value)}
             />
-            <Tabs
-                variant="light"
-                radius="full"
-                color="primary"
-            >
-                <Tab key="auctions" title="Auction">
-                    <DynamicAuctionsContainer />
-                </Tab>
-                <Tab key="collections" title="Collection">
-                    <DynamicCollectionsContainer />
-                </Tab>
-            </Tabs>
+            <div className="grid grid-cols-[auto_auto] gap-4 w-full">
+                <div>
+                    <Tabs
+                        variant="light"
+                        radius="full"
+                        color="primary"
+                    >
+                        <Tab key="auctions" title="Auction">
+                            <DynamicAuctionsContainer />
+                        </Tab>
+                        <Tab key="collections" title="Collection">
+                            <DynamicCollectionsContainer />
+                        </Tab>
+                    </Tabs>
+                </div>
+                <div>
+                    <TransactionContainer />
+                </div>
+            </div>
         </div>
     )
 }

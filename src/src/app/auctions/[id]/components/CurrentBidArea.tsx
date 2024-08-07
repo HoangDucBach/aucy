@@ -2,14 +2,16 @@
 // External imports
 import React from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Input } from "@nextui-org/react"
+import { TbPigMoney } from "react-icons/tb";
+import { PiGiftFill } from "react-icons/pi";
 
 // Internal imports
 import { useAuctionContext } from "../context";
 import { useWalletInterface } from "@/services/wallets/useWalletInterface";
 import { Button } from "@/components/ui/button";
-import { PiGiftFill } from "react-icons/pi";
 import { donate } from "@/entry-functions";
 import { toast } from "react-toastify";
+import { placeBid } from "@/entry-functions/bidder-operators";
 function DonationArea() {
     const { walletInterface } = useWalletInterface();
     const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
@@ -90,10 +92,94 @@ function DonationArea() {
                             className="bg-white/5"
                             isLoading={loading}
                             onClick={handleDonate}
+                        >
+                            <PiGiftFill size={24} className="text-primary" />
+                        </Button>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        </>
+    )
+}
+function BidArea() {
+    const { walletInterface } = useWalletInterface();
+    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+    const [bidValue, setBidValue] = React.useState<number>(0);
+    const [loading, setLoading] = React.useState<boolean>(false);
+    const auction = useAuctionContext();
+
+    const handleBid = async () => {
+        try {
+            setLoading(true);
+            await placeBid(auction?.id!, bidValue, walletInterface);
+            toast.success('Bidded successfully');
+            onClose();
+        } catch (error: any) {
+            console.error(error);
+            toast.error('Failed to bid');
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return (
+        <>
+            <Button
+                color="primary"
+                radius="full"
+                size="md"
+                onClick={onOpen}
+            >
+                Place a bid
+            </Button>
+            <Modal
+                isOpen={isOpen}
+                onClose={onOpenChange}
+                size="sm"
+                classNames={{
+                    base: 'border border-default/50 rounded-[32px] bg-layout-foreground-50',
+                }}
+            >
+                <ModalContent className="items-center">
+                    <ModalHeader className="flex flex-col items-center gap-2">
+                        <h6>Place a bid</h6>
+                        <p className="text-base font-normal text-default text-center">Bid value must be greater than current bid</p>
+                    </ModalHeader>
+                    <ModalBody className="flex flex-row justify-between gap-2 items-center">
+                        <Input
+                            radius="full"
+                            type="number"
+                            labelPlacement="outside"
+                            classNames={{
+                                label: 'font-semibold text-default-foreground',
+                                mainWrapper: 'w-fit max-w-[48em]',
+                                base: 'w-fit',
+                                input: 'text-4xl font-bold !text-default-500',
+                            }}
                             endContent={
-                                <PiGiftFill size={24} className="text-primary" />
+                                <img
+                                    src={'https://cryptologos.cc/logos/hedera-hbar-logo.svg?v=032'}
+                                    alt='hbar logo'
+                                    className='w-8 h-8'
+                                />
                             }
+                            isRequired
+                            defaultValue="0"
+                            onChange={(e) => setBidValue(Number(e.target.value))}
+                            min={0}
                         />
+                        <Button
+                            variant="bordered"
+                            isIconOnly
+                            color="primary"
+                            radius="full"
+                            size="md"
+                            className="bg-white/5"
+                            isLoading={loading}
+                            onClick={handleBid}
+                        >
+                            <TbPigMoney size={24} className="text-primary" />
+                        </Button>
                     </ModalBody>
                 </ModalContent>
             </Modal>
@@ -122,7 +208,10 @@ export function CurrentBidArea() {
                         />
                     </div>
                 </div>
-                <DonationArea />
+                <div className="flex flex-row items-center gap-4 w-fit">
+                    <DonationArea />
+                    <BidArea />
+                </div>
             </div>
 
         </section>

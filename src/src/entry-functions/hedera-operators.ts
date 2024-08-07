@@ -1,6 +1,6 @@
 // External imports
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { PublicKey, TokenCreateTransaction, TokenId, TokenInfo, TokenMintTransaction, TokenSupplyType, TokenType, TopicCreateTransaction, TopicInfoQuery, TopicMessageQuery, TopicMessageSubmitTransaction } from "@hashgraph/sdk";
+import { PublicKey, TokenCreateTransaction, TokenId, TokenInfo, TokenMintTransaction, TokenSupplyType, TokenType, TopicCreateTransaction, TopicId, TopicInfoQuery, TopicMessageQuery, TopicMessageSubmitTransaction } from "@hashgraph/sdk";
 
 // Internal imports
 import { appConfig } from "@/config";
@@ -69,9 +69,36 @@ export async function getNfts(tokenAddress: string, query?: TQuery): Promise<any
  */
 export async function getNftInfo(tokenId: string, serial: any, query?: TQuery): Promise<TokenInfo> {
     if (!tokenId) throw new Error('Token ID is required to get NFT info');
-    console.log('Token ID:', TokenId.fromSolidityAddress(tokenId).toString());
     try {
-        const endpoint = `${appConfig.constants.HEDERA_API_ENDPOINT}/tokens/${TokenId.fromSolidityAddress(tokenId).toString()}/nfts/${serial}`;
+        let address1, address2, address3, endpoint;
+
+        try {
+            address1 = TokenId.fromSolidityAddress(tokenId).toString();
+            console.log("Address 1:", address1);
+        } catch (error) {
+            console.error("Error converting tokenId to address1:", error);
+        }
+        
+        try {
+            address2 = TokenId.fromString(tokenId).toString();
+            console.log("Address 2:", address2);
+        } catch (error) {
+            console.error("Error converting tokenId to address2:", error);
+        }
+        
+        try {
+            address3 = TokenId.fromBytes(Buffer.from(tokenId)).toString();
+            console.log("Address 3:", address3);
+        } catch (error) {
+            console.error("Error converting tokenId to address3:", error);
+        }
+        
+        try {
+            endpoint = `${appConfig.constants.HEDERA_API_ENDPOINT}/tokens/${TokenId.fromSolidityAddress(tokenId).toString()}/nfts/${serial}`;
+            console.log("Endpoint:", endpoint);
+        } catch (error) {
+            console.error("Error constructing endpoint:", error);
+        }
 
         const res = await axios.get(endpoint, {
             params: {
@@ -80,9 +107,6 @@ export async function getNftInfo(tokenId: string, serial: any, query?: TQuery): 
         });
         return keysToCamelCase(res.data);
     } catch (error: any) {
-        if (error instanceof AxiosError) {
-            throw error;
-        }
         throw new InternalError(error.message);
     }
 }
@@ -203,6 +227,10 @@ export async function createCollection(_tokenInfo: TCreateCollection, walletInte
 
         // Freeze the transaction
         await tokenCreateTransaction.freezeWithSigner(walletInterface.getSigner());
+
+        // Submit a message to the topic
+        await submitAMessage(appConfig.constants.AUCY_TOPIC_ID, `New collection created: ${name}`, walletInterface);
+
         // Submit transaction
         return await tokenCreateTransaction.executeWithSigner(walletInterface.getSigner());
     }
@@ -237,6 +265,10 @@ export async function mintNFT(_mintTokenInfo: TMintTokenInfo, walletInterface: a
         // Sign transaction
         const signedTransaction = await tokenMintTransaction.freezeWithSigner(walletInterface.getSigner());
 
+
+        // Submit message to topic
+        await submitAMessage(appConfig.constants.AUCY_TOPIC_ID, `New NFT minted: ${metadataUri}`, walletInterface);
+
         // Submit transaction
         return await signedTransaction.executeWithSigner(walletInterface.getSigner());
     } catch (error: any) {
@@ -265,7 +297,16 @@ export async function createTopic(walletInterface: WalletConnectWallet) {
         throw new Error("Error creating topic");
     }
 }
-
+export async function subcribeTopic(topicId: string) {
+    try {
+        new TopicMessageQuery()
+            .setTopicId(topicId)
+            .subscribe(client, null, (message) => {
+            });
+    } catch (error: any) {
+        throw new Error("Error subscribing to topic");
+    }
+}
 /**
  * Submit message to topic
  * @param topicId
@@ -311,22 +352,25 @@ export async function getTopicInfo(topicId: string, walletInterface: WalletConne
 /**
  * Get topic messages
  * @param topicId
+ * @returns string[]
  */
-export async function getTopicMessages(topicId: string, walletInterface: WalletConnectWallet) {
+export async function getTopicMessages(topicId: string) {
     if (!topicId) throw new Error('Topic ID is required to get topic messages');
-    const messages = []
+    const messages: string[] = []
     try {
         new TopicMessageQuery()
-            .setTopicId(topicId)
+            .setTopicId(TopicId.fromString(topicId))
             .setStartTime(0)
-            .subscribe(client, () => {
-
+            .subscribe(client, (error) => {
+                console.log('Error getting topic message', error);
             }, (message) => {
                 // message is a Uint8Array
                 const decodedMessage = new TextDecoder().decode(message.contents);
                 messages.push(decodedMessage);
             });
+        return messages;
     } catch (error: any) {
+        console.error('Error getting topic messages', error);
         throw new Error('Failed to get topic messages');
     }
 }

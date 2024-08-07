@@ -1,3 +1,24 @@
+
+/*
+|| IDENTITY ERROR
+*/
+export class IdentityError extends Error {
+    constructor(type: IdentityErrorType, message?: string) {
+        super(message || type);
+        this.name = 'IdentityError';
+        this.cause = type;
+    }
+
+    cause: IdentityErrorType;
+}
+
+export enum IdentityErrorType {
+    IDENTITY_NOT_FOUND = 'Identity not found',
+}
+
+export enum IdentityErrorMessages {
+    IDENTITY_NOT_FOUND = 'Identity not found',
+}
 /*
 || ACCOUNT ERROR
 */

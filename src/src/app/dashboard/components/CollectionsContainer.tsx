@@ -124,7 +124,7 @@ export default function CollectionsContainer() {
     return (
         <section id="auctions" className='flex flex-col gap-8 h-full w-full' ref={scrollerRef}>
             <h1 className="text-2xl font-bold text-default-foreground flex flex-row items-center gap-4">
-                Colelctions
+                Collection
             </h1>
             {
                 collections.length > 0 ?
@@ -139,8 +139,8 @@ export default function CollectionsContainer() {
                             ))}
 
                         </div>
-                        <Button onClick={loadMore}>Load More</Button>
                         {hasMore && <Spinner label="Loading ..." color="primary" labelColor="primary" />}
+                        <Button onClick={loadMore}>Load More</Button>
                     </div>
                     :
                     <div>

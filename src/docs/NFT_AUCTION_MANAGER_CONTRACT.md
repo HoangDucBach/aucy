@@ -31,6 +31,7 @@
       - [Add Receiver](#add-receiver)
       - [Remove Receiver](#remove-receiver)
       - [Transfer Money](#transfer-money)
+  - [📍 Contract Address and ID](#-contract-address-and-id)
   - [📜 License](#-license)
 
 ## 💬 Overview
@@ -85,7 +86,6 @@ struct Auction {
     uint256 endingAt;
     address[] receivers;
     uint16[] percentages;
-    bool isActive;
 }
 ```
 
@@ -230,7 +230,13 @@ function transferMoney(
     uint256 _amount
 ) external;
 ```
+## 📍 Contract Address and ID
 
+To interact with the NFTAuctionManager contract, you will need the contract address and ID. Here is an example:
+
+- **Contract Address:** `0x01786227BD70c5A763375D808ec13270c8C60255`
+- **Contract ID [On Hedera]:** `0.0.4657519`
+  
 ## 📜 License
 
 This project does not have a license.

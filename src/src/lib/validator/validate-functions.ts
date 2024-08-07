@@ -22,8 +22,8 @@ export const validatePropsCreateNFTCollection = (props: TCreateCollection) => {
         maxSupply,
         customFees
     } = props;
-    if (!name || !symbol || !supplyKey) {
-        throw new ValidateError('Please fill in all fields.');
+    if (!name || !symbol) {
+        throw new ValidateError('Please fill in all required fields.');
     }
     // Validate keys
     if (adminKey && !validator.isEthereumAddress(adminKey)) {
@@ -32,10 +32,9 @@ export const validatePropsCreateNFTCollection = (props: TCreateCollection) => {
     if (kycKey && !validator.isEthereumAddress(kycKey)) {
         throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid kyc key');
     }
-    // if (supplyKey && !validator.isEthereumAddress(supplyKey)) {
-    //     throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid supply key');
-    // }
-
+    if (supplyKey && !validator.isEthereumAddress(supplyKey)) {
+        throw ValidateErrorFactory.createError(ValidateErrorType.CreateNFTsCollection, 'Invalid supply key');
+    }
 
     // Validate name
     if (!validator.isLength(name, { min: 1, max: 100 })) {

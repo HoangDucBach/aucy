@@ -80,7 +80,7 @@ export default function CreateCollectionForm() {
     })
     const validateSupplyKey = register('supplyKey', {
         required: {
-            value: true,
+            value: false,
             message: 'Supply key must be provided'
         }
     })

@@ -4,6 +4,7 @@ import { ContractCallQuery, ContractExecuteTransaction, ContractFunctionParamete
 // Internal imports
 import { appConfig } from "@/config";
 import { client } from "./heplers";
+import { IdentityError, IdentityErrorType } from "@/types";
 
 /**
  * Place a bid on an auction
@@ -12,24 +13,31 @@ import { client } from "./heplers";
  * @param walletInterface - Wallet interface
  */
 export async function placeBid(auctionId: string, amount: number, walletInterface: any) {
-    const transaction = await new ContractExecuteTransaction()
-        .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
-        .setGas(10_000_000)
-        .setMaxAttempts(10)
-        .setFunction("placeBid", new ContractFunctionParameters()
-            .addString(auctionId)
-            .addInt256(amount)
-        )
-        .setTransactionMemo("Place bid")
-        .freezeWithSigner(walletInterface.getSigner());
+    if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
+    try {
 
-    const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
+        const transaction = await new ContractExecuteTransaction()
+            .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+            .setGas(10_000_000)
+            .setMaxAttempts(10)
+            .setFunction("placeBid", new ContractFunctionParameters()
+                .addString(auctionId)
+            )
+            .setTransactionMemo("Place bid")
+            .freezeWithSigner(walletInterface.getSigner());
 
-    const record = await txResponse.getRecord(client);
+        const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
 
-    const result = record.contractFunctionResult;
+        const record = await txResponse.getRecord(client);
 
-    return result;
+        const result = record.contractFunctionResult;
+
+        return result;
+
+    } catch (error: any) {
+        console.error('Error placing bid', error);
+        throw new Error(error);
+    }
 }
 
 /**
@@ -38,20 +46,28 @@ export async function placeBid(auctionId: string, amount: number, walletInterfac
  * @param walletInterface - Wallet interface
  */
 export async function withdrawBid(auctionId: string, walletInterface: any) {
-    const transaction = await new ContractExecuteTransaction()
-        .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
-        .setGas(10_000_000)
-        .setMaxAttempts(10)
-        .setFunction("withdrawBid", new ContractFunctionParameters()
-            .addString(auctionId)
-        )
-        .setTransactionMemo("Withdraw bid")
-        .freezeWithSigner(walletInterface.getSigner());
+    if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
+    try {
 
-    const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
-    const record = await txResponse.getRecord(client);
-    const result = record.contractFunctionResult;
-    return result;
+        const transaction = await new ContractExecuteTransaction()
+            .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+            .setGas(10_000_000)
+            .setMaxAttempts(10)
+            .setFunction("withdrawBid", new ContractFunctionParameters()
+                .addString(auctionId)
+            )
+            .setTransactionMemo("Withdraw bid")
+            .freezeWithSigner(walletInterface.getSigner());
+
+        const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
+        const record = await txResponse.getRecord(client);
+        const result = record.contractFunctionResult;
+        return result;
+
+    } catch (error: any) {
+        console.error('Error withdrawing bid', error);
+        throw new Error(error);
+    }
 }
 
 /**

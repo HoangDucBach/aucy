@@ -136,6 +136,30 @@ export async function cancelAuction(auctionId: string, walletInterface: any) {
     return result;
 }
 
+export function _getAuctionByResult(result: any): TAuction {
+    let index = 0;
+    const auction = {
+        id: result[index++],
+        topicId: result[index++],
+        name: result[index++],
+        description: result[index++],
+        seller: result[index++],
+        tokenAddress: result[index++],
+        tokenId: BigInt(result[index++]),
+        startingPrice: BigInt(result[index++]),
+        minBidIncrement: BigInt(result[index++]),
+        endingPrice: BigInt(result[index++]),
+        startedAt: BigInt(result[index++]),
+        endingAt: BigInt(result[index++]),
+        endedAt: BigInt(result[index++]),
+        highestBid: BigInt(result[index++]),
+        highestBidder: result[index++],
+        donation: result[index++],
+        receivers: result[index++],
+        percentages: result[index++],
+    } satisfies TAuction;
+    return auction;
+}
 export async function getAuction(auctionId: string) {
     try {
         const transaction = await new ContractCallQuery()
@@ -151,23 +175,7 @@ export async function getAuction(auctionId: string) {
         const result = transaction;
         const resultArray = new ethers.Interface(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI).decodeFunctionResult("getAuction", result.asBytes())[0];
         let index = 0;
-        const auction = {
-            name: resultArray[index++],
-            description: resultArray[index++],
-            seller: resultArray[index++],
-            tokenAddress: resultArray[index++],
-            tokenId: BigInt(resultArray[index++]),
-            startingPrice: BigInt(resultArray[index++]),
-            minBidIncrement: BigInt(resultArray[index++]),
-            endingPrice: BigInt(resultArray[index++]),
-            startedAt: BigInt(resultArray[index++]),
-            endingAt: BigInt(resultArray[index++]),
-            endedAt: BigInt(resultArray[index++]),
-            highestBid: BigInt(resultArray[index++]),
-            highestBidder: resultArray[index++],
-            receivers: resultArray[index++],
-            percentages: resultArray[index++],
-        } satisfies TAuction;
+        const auction = _getAuctionByResult(resultArray);
         return auction;
     } catch (error: any) {
         console.error('Error getting auction', error);
@@ -194,25 +202,7 @@ export async function getAuctions() {
         const auctions: TAuction[] = [];
 
         resultArray.forEach((auction: any) => {
-            let index = 0;
-            auctions.push({
-                name: auction[index++],
-                description: auction[index++],
-                seller: auction[index++],
-                tokenAddress: auction[index++],
-                tokenId: BigInt(auction[index++]),
-                startingPrice: BigInt(auction[index++]),
-                minBidIncrement: BigInt(auction[index++]),
-                endingPrice: BigInt(auction[index++]),
-                startedAt: BigInt(auction[index++]),
-                endingAt: BigInt(auction[index++]),
-                endedAt: BigInt(auction[index++]),
-                highestBid: BigInt(auction[index++]),
-                highestBidder: auction[index++],
-                donation: auction[index++],
-                receivers: auction[index++],
-                percentages: auction[index++],
-            });
+            auctions.push(_getAuctionByResult(auction));
         });
 
         return auctions;

@@ -3,6 +3,7 @@ export type TAuctionCreation = {
     description?: string;
     tokenAddress?: string;
     tokenId?: number;
+    topicId?: string;
     startingPrice?: number;
     minBidIncrement?: number;
     endingPrice?: number;
@@ -31,6 +32,8 @@ export type TAuctionCreation = {
  * @param percentages - The percentages of the receivers
  */
 export type TAuction = {
+    id?: string
+    topicId?: string;
     name?: string;
     description?: string;
     seller?: string;
