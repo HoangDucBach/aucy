@@ -54,7 +54,7 @@ function AuctionCard({ auction }: { auction: TAuction }) {
             onClick={() => router.push(`../auctions/${auction.id}`)}
         >
             <Image
-                isLoading={!nftInfo}
+                isLoading={!metadata}
                 src={metadata?.image || 'https://fakeimg.pl/500x500?text=Image&font=bebas'}
                 alt={metadata?.name}
                 classNames={{
