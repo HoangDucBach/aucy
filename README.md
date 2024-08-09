@@ -2,7 +2,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://aucy.vecel.com/">
     <img src="src/public/aucy.svg" alt="Logo" width="80" height="80">
   </a>
   <h1 align="center">Aucy</h1>
