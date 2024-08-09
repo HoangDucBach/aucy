@@ -15,7 +15,7 @@ import Footer from "@/components/Footer";
 
 
 export const metadata: Metadata = {
-    title: appConfig.constants.METADATA.name,
+    title: 'Aucy | NFT Auction Platform',
     description: appConfig.constants.METADATA.description,
     icons: [
         { 
@@ -47,7 +47,7 @@ export default function RootLayout({
                     "min-h-screen font-sans antialiased",
                 )}
             >
-                <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+                <Providers themeProps={{ attribute: "class", defaultTheme: "dark", children: children }}>
                     <div className="relative flex flex-col h-screen w-full overflow-x-clip ">
                         <Navbar />
                         <main className="container mx-auto pt-4 md:pt-8 px-4 flex-grow">

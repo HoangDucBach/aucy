@@ -1,7 +1,12 @@
-'use client';
 // Internal imports
 import { Chip } from '@nextui-org/react'
 import CreateAuctionForm from './components/CreateAuctionForm'
+import { Metadata } from 'next';
+export const metadata : Metadata = {
+    title: 'Aucy | Create Auction',
+    description: 'Create an auction for your NFT',
+    keywords: 'Auction, NFT, Create',
+}
 export default function Page() {
     return (
         <div className='flex flex-col gap-8 justify-between md:max-w-2xl'>

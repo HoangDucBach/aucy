@@ -1,7 +1,9 @@
 'use client';
 
 import { createContext, useContext } from "react";
-export const CollectionContext = createContext<any | undefined>(undefined);
+export const CollectionContext = createContext<any>({
+
+});
 export function useCollection() {
     const context = useContext(CollectionContext);
     if (context === undefined) {

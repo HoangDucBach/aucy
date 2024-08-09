@@ -1,6 +1,11 @@
 // Internal imports
-import { Chip } from '@nextui-org/react'
+import { Metadata } from 'next'
 import CreateCollectionForm from './components/CreateCollectionForm'
+export const metadata: Metadata = {
+    title: 'Aucy | Create Collection',
+    description: 'Create a collection for your NFTs',
+    keywords: 'Collection, NFT, Create',
+}
 export default function Page() {
     return (
         <div className='flex flex-col gap-8 justify-between md:max-w-2xl'>

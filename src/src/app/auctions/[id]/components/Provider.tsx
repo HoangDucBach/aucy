@@ -7,6 +7,8 @@ import { HeaderArea } from "./HeaderArea";
 import { CountdownArea } from "./CountdownArea";
 import { CurrentBidArea } from "./CurrentBidArea";
 import { useMedia } from "@/hooks";
+import DetailsArea from "./DetailsArea";
+import ReceiversArea from "./ReceiversArea";
 
 export function Provider(auction: TAuction) {
     const { isMobile } = useMedia();
@@ -25,17 +27,19 @@ export function Provider(auction: TAuction) {
         );
     }
     return (
-            <AuctionContextProvider>
-                <AuctionContext.Provider value={auction}>
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-8 h-full">
-                        <NftImageArea />
-                        <div className="md:py-8 h-full w-full flex flex-col items-center justify-between gap-4">
-                            <HeaderArea />
-                            <CountdownArea />
-                            <CurrentBidArea />
-                        </div>
+        <AuctionContextProvider>
+            <AuctionContext.Provider value={auction}>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 h-full">
+                    <NftImageArea />
+                    <div className="md:py-8 h-full w-full flex flex-col items-center justify-between gap-4">
+                        <HeaderArea />
+                        <DetailsArea />
+                        <ReceiversArea />
+                        <CountdownArea />
+                        <CurrentBidArea />
                     </div>
-                </AuctionContext.Provider>
-            </AuctionContextProvider>
-        );
-    }
+                </div>
+            </AuctionContext.Provider>
+        </AuctionContextProvider>
+    );
+}

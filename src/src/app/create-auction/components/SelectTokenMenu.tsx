@@ -7,7 +7,7 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, cn, Radio, Selec
 // Internal imports
 import { Button } from "@/components/ui/button";
 import { useWalletInterface } from "@/services/wallets/useWalletInterface";
-import { getMyCollections } from "@/entry-functions";
+import { getMyCollections, getMyNfts } from "@/entry-functions";
 import { getNfts } from "@/entry-functions";
 import { toast } from "react-toastify";
 
@@ -48,9 +48,10 @@ export function SelectTokenMenu({ onTokenSelect }: { onTokenSelect: (tokenAddres
                 });
         }
     }, [accountId]);
+
     React.useEffect(() => {
-        if (selectedTokenId) {
-            getNfts(selectedTokenId)
+        if (selectedTokenId && accountId) {
+            getMyNfts(accountId, selectedTokenId)
                 .then(data => {
                     setNftsOfToken(data || []);
                 })
@@ -58,11 +59,11 @@ export function SelectTokenMenu({ onTokenSelect }: { onTokenSelect: (tokenAddres
                     toast.error(err.message);
                 });
         }
-    }, [selectedToken, selectedTokenId]);
+    }, [selectedTokenId, accountId]);
+
     React.useEffect(() => {
         onTokenSelect(selectedTokenId, serial);
-        console.log(selectedTokenId, serial);
-    }, [selectedTokenId, serial]);
+    }, [selectedTokenId, serial, onTokenSelect]);
     return (
         <div className="flex flex-row gap-4 justify-between items-start w-full">
             <Select
@@ -102,7 +103,7 @@ export function SelectTokenMenu({ onTokenSelect }: { onTokenSelect: (tokenAddres
                 classNames={{
                     base: "items-center w-fit",
                 }}
-                variant="flat"
+                variant="faded"
                 fullWidth={true}
                 isLoading={selectedTokenId && !nftsOfToken}
                 onSelectionChange={(target) => {

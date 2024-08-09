@@ -271,6 +271,14 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
         // Retrieve the auction from the auctions mapping
         Auction storage auction = auctions[_auctionId];
 
+
+        // Transfer the bid amount to the contract
+        require(
+            msg.value >0,
+            "The value sent is not greater than 0"
+        );
+
+
         // Check if the bid amount is greater than the highest bid
         require(
             msg.value > auction.highestBid,
@@ -287,19 +295,6 @@ contract NFTAuctionManager is Ownable(msg.sender), AAuction, IERC721Receiver {
             msg.value >= auction.highestBid + auction.minBidIncrement,
             "Bid amount is not greater than the min bid increment"
         );
-
-        // Check if the bid amount is less than the ending price
-        require(
-            msg.value <= auction.endingPrice,
-            "Bid amount is not less than the ending price"
-        );
-
-        // Transfer the bid amount to the contract
-        require(
-            msg.value >0,
-            "The value sent is not greater than 0"
-        );
-
         // Update the highest bid and highest bidder of the auction
         auction.highestBid = msg.value;
         auction.highestBidder = msg.sender;

@@ -5,17 +5,15 @@ import {
     ContractCallQuery,
     ContractId, Hbar,
     EvmAddress,
-    EthereumTransaction,
-    HbarUnit,
-    ContractFunctionSelector,
 } from "@hashgraph/sdk";
 
 // Internal imports
 import { appConfig } from "@/config";
-import { TAuction, TAuctionCreation, TBid } from "@/types";
+import { AccountError, AccountErrorType, IdentityError, IdentityErrorType, TAuction, TAuctionCreation, TBid } from "@/types";
 import client from "@/utils/hederaClient";
-import { ethers } from "ethers";
-import { WalletConnectWallet } from "@/services/wallets/walletconnect/walletConnectClient";
+import { ErrorFragment, ethers } from "ethers";
+import { WalletInterface } from "@/services/helpers/walletInterfaces";
+import { createTopic, submitAMessage } from "./hedera-operators";
 
 const MAX_GAS = 1_000_000;
 const MAX_ATTEMPTS = 10;
@@ -25,7 +23,7 @@ const contractInterface = new ethers.Interface(appConfig.constants.AUCY_CONTRACT
  * @param _auction - auction info
  * @param walletInterface - wallet interface
  */
-export async function createAuction(_auction: TAuctionCreation, walletInterface: WalletConnectWallet) {
+export async function createAuction(_auction: TAuctionCreation, walletInterface: WalletInterface) {
     const {
         name,
         description,
@@ -49,38 +47,57 @@ export async function createAuction(_auction: TAuctionCreation, walletInterface:
 
     try {
 
-        const transaction = await new ContractExecuteTransaction()
-            .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
-            .setGas(MAX_GAS)
-            .setMaxAttempts(MAX_ATTEMPTS)
-            .setPayableAmount(new Hbar(100, HbarUnit.Tinybar))
-            .setFunction("createAuction", new ContractFunctionParameters()
-                .addString(name)
-                .addString(description)
-                .addAddress(ContractId.fromString(tokenAddress).toSolidityAddress())
-                .addInt256(tokenId.toString())
-                .addInt256(startingPrice.toString())
-                .addInt256(minBidIncrement.toString())
-                .addInt256(endingPrice.toString())
-                .addInt256(endingAt.toString())
-                .addAddressArray(receivers!)
-                .addInt16Array(percentages!)
-            )
-            // .freezeWithSigner(walletInterface.getSigner())
-            .freezeWith(client);
+        // const transaction = await new ContractExecuteTransaction()
+        //     .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+        //     .setGas(MAX_GAS)
+        //     .setMaxAttempts(MAX_ATTEMPTS)
+        //     .setPayableAmount(new Hbar(100, HbarUnit.Tinybar))
+        //     .setFunction("createAuction", new ContractFunctionParameters()
+        //         .addString(name)
+        //         .addString(description)
+        //         .addAddress(ContractId.fromString(tokenAddress).toSolidityAddress())
+        //         .addInt256(tokenId.toString())
+        //         .addInt256(startingPrice.toString())
+        //         .addInt256(minBidIncrement.toString())
+        //         .addInt256(endingPrice.toString())
+        //         .addInt256(endingAt.toString())
+        //         .addAddressArray(receivers!)
+        //         .addInt16Array(percentages!)
+        //     )
+        // .freezeWithSigner(walletInterface.getSigner())
+        // .freezeWith(client);
 
         // const sign = await transaction.signWithSigner(walletInterface.getSigner());
 
-        // const txResponse = await sign.executeWithSigner(walletInterface.getSigner());
-        const txResponse = await transaction.execute(client);
-        console.log('txResponse', txResponse);
+        if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
+        const contractAddress = appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ADDRESS;
+        const signer = await walletInterface.getProvider().getSigner();
+        const account = await signer.getAddress();
+        const contract = new ethers.Contract(contractAddress, appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI, signer);
+        const topicId = await createTopic(walletInterface);
+        const tx = await contract.createAuction(
+            name,
+            description,
+            ContractId.fromString(tokenAddress).toSolidityAddress(),
+            tokenId,
+            topicId?.toSolidityAddress(),
+            startingPrice,
+            minBidIncrement,
+            endingPrice,
+            endingAt,
+            receivers,
+            percentages
+        );
+        await tx.wait();
 
-        const receipt = await txResponse.getReceipt(client);
-        console.log('receipt', receipt);
+        // await submitAMessage(appConfig.constants.AUCY_TOPIC_ID, `${account} has created an auction`, walletInterface);
 
-        return null;
+        return tx;
     } catch (error: any) {
         console.error('Error creating auction', error);
+        if (error instanceof ErrorFragment) {
+            throw new Error(error.name)
+        }
         throw new Error(error);
     }
 
@@ -92,23 +109,41 @@ export async function createAuction(_auction: TAuctionCreation, walletInterface:
  * @param walletInterface - Wallet interface
  */
 export async function endAuction(auctionId: string, walletInterface: any) {
-    const transaction = await new ContractExecuteTransaction()
-        .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
-        .setGas(MAX_GAS)
-        .setMaxAttempts(MAX_ATTEMPTS)
-        .setFunction("endAuction", new ContractFunctionParameters()
-            .addAddress(auctionId)
-        )
-        .setTransactionMemo("End auction")
-        .freezeWithSigner(walletInterface.getSigner());
+    // const transaction = await new ContractExecuteTransaction()
+    //     .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+    //     .setGas(MAX_GAS)
+    //     .setMaxAttempts(MAX_ATTEMPTS)
+    //     .setFunction("endAuction", new ContractFunctionParameters()
+    //         .addAddress(auctionId)
+    //     )
+    //     .setTransactionMemo("End auction")
+    //     .freezeWithSigner(walletInterface.getSigner());
 
-    const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
+    // const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
 
-    const record = await txResponse.getRecord(client);
+    // const record = await txResponse.getRecord(client);
 
-    const result = record.contractFunctionResult;
+    // const result = record.contractFunctionResult;
 
-    return result;
+    // return result;
+    if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
+    if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
+
+    try {
+        const contractAddress = appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ADDRESS;
+        const signer = await walletInterface.getProvider().getSigner();
+        const account = await signer.getAddress();
+        const contract = new ethers.Contract(contractAddress, appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI, signer);
+
+        const tx = await contract.endAuction(auctionId);
+        await tx.wait();
+        await submitAMessage(appConfig.constants.AUCY_TOPIC_ID, `${account} has ended an auction`, walletInterface);
+        return true;
+
+    } catch (error: any) {
+        console.error('Error ending auction', error);
+        throw new Error(error);
+    }
 }
 
 /**
@@ -154,10 +189,13 @@ export function _getAuctionByResult(result: any): TAuction {
         endedAt: BigInt(result[index++]),
         highestBid: BigInt(result[index++]),
         highestBidder: result[index++],
-        donation: result[index++],
+        donation: BigInt(result[index++]),
         receivers: result[index++],
         percentages: result[index++],
     } satisfies TAuction;
+    if (auction.id === ethers.ZeroAddress) {
+        throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
+    }
     return auction;
 }
 export async function getAuction(auctionId: string) {
@@ -166,7 +204,7 @@ export async function getAuction(auctionId: string) {
             .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
             .setGas(MAX_GAS)
             .setMaxAttempts(MAX_ATTEMPTS)
-            .setMaxQueryPayment(new Hbar(10))
+            .setMaxQueryPayment(new Hbar(5))
             .setFunction("getAuction", new ContractFunctionParameters()
                 .addAddress(EvmAddress.fromString(auctionId))
             )
@@ -174,7 +212,6 @@ export async function getAuction(auctionId: string) {
 
         const result = transaction;
         const resultArray = new ethers.Interface(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI).decodeFunctionResult("getAuction", result.asBytes())[0];
-        let index = 0;
         const auction = _getAuctionByResult(resultArray);
         return auction;
     } catch (error: any) {
@@ -192,7 +229,7 @@ export async function getAuctions() {
             .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
             .setGas(MAX_GAS)
             .setMaxAttempts(MAX_ATTEMPTS)
-            .setMaxQueryPayment(new Hbar(10))
+            .setMaxQueryPayment(new Hbar(5))
             .setFunction("getAuctions", new ContractFunctionParameters())
             .execute(client);
 

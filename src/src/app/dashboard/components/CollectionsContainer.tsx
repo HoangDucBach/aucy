@@ -12,11 +12,11 @@ import { toast } from "react-toastify";
 import { truncateAddress } from "@/lib/address/truncate";
 import { useSearchParams, useRouter } from "next/navigation";
 import { trim } from "validator";
-function CollectionCard({ collection }: { collection: TCollectionInfo }) {
+export function CollectionCard({ collection }: { collection: TCollectionInfo }) {
     const [metadata, setMetadata] = React.useState<any>(null);
     const router =useRouter();
 
-    const load = async () => {
+    const load = React.useCallback(async () => {
         try {
             const metadata = await getMetadata(collection.metadata);
             setMetadata(metadata);
@@ -24,11 +24,11 @@ function CollectionCard({ collection }: { collection: TCollectionInfo }) {
             console.error(error);
             toast.error('Failed to load metadata');
         }
-    }
+    }, [collection.metadata]);
     
     React.useEffect(() => {
         load();
-    }, [collection.metadata]);
+    }, [collection.metadata, load]);
     return (
         <div
             key={collection.name}
@@ -63,13 +63,14 @@ function CollectionCard({ collection }: { collection: TCollectionInfo }) {
         </div>
     )
 }
+
 export default function CollectionsContainer() {
     const [collections, setCollections] = React.useState<TCollectionInfo[] | []>([]);
     const [lastId, setLastId] = React.useState<string | null>('0.0.0');
     const [hasMore, setHasMore] = React.useState<boolean>(false);
     const searchParams = useSearchParams();
 
-    const load = async () => {
+    const load = React.useCallback(async () => {
         try {
             const data = await getCollections();
             setCollections(data);
@@ -77,8 +78,8 @@ export default function CollectionsContainer() {
             toast.error('Failed to load collections');
             console.error(error);
         }
-    };
-    const search = async () => {
+    }, []);
+    const search = React.useCallback(async () => {
         const searchKey = searchParams.get('search');
         try {
             const data = await getCollections({
@@ -86,8 +87,10 @@ export default function CollectionsContainer() {
             });
             setCollections(data);
         } catch (error: any) {
+            console.error(error);
         }
-    }
+    }, [searchParams]);
+
     const loadMore = async () => {
         try {
             setHasMore(true);
@@ -116,10 +119,10 @@ export default function CollectionsContainer() {
     });
     React.useEffect(() => {
         load()
-    }, []);
+    }, [load]);
     React.useEffect(() => {
         search()
-    }, [searchParams]);
+    }, [searchParams, search]);
 
     return (
         <section id="auctions" className='flex flex-col gap-8 h-full w-full' ref={scrollerRef}>

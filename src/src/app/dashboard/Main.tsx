@@ -12,6 +12,9 @@ const DynamicAuctionsContainer = dynamic(() => import('./components/AuctionsCont
 const DynamicCollectionsContainer = dynamic(() => import('./components/CollectionsContainer'), {
     ssr: false
 });
+const DynamicMyCollectionsContainer = dynamic(() => import('./components/MyCollectionsContainer'), {
+    ssr: false
+});
 export default function Main() {
     const [searchParam, setSearchParam] = React.useState<string>('');
     const router = useRouter()
@@ -33,7 +36,7 @@ export default function Main() {
         router.push(
             `${pathname}?${createQueryString('search', searchParam)}`
         )
-    }, [searchParam]);
+    }, [searchParam, createQueryString, pathname, router]);
     return (
         <div className="flex flex-col gap-8 w-full h-full">
             <Input
@@ -42,8 +45,8 @@ export default function Main() {
                 value={searchParam}
                 onChange={(e) => setSearchParam(e.target.value)}
             />
-            <div className="grid grid-cols-[auto_auto] gap-4 w-full">
-                <div>
+            <div className="grid grid-cols-3 gap-4 w-full">
+                <div className="col-span-2 col-start-1">
                     <Tabs
                         variant="light"
                         radius="full"
@@ -55,9 +58,12 @@ export default function Main() {
                         <Tab key="collections" title="Collection">
                             <DynamicCollectionsContainer />
                         </Tab>
+                        <Tab key="my-collections" title="My Collection">
+                            <DynamicMyCollectionsContainer />
+                        </Tab>
                     </Tabs>
                 </div>
-                <div>
+                <div className="col-span-1 col-start-3">
                     <TransactionContainer />
                 </div>
             </div>

@@ -1,7 +1,7 @@
 // @refresh reset
 
 // External imports
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Internal imports
 import { getAuctions, getMetadata, getNftInfo } from "@/entry-functions";
@@ -21,25 +21,25 @@ function AuctionCard({ auction }: { auction: TAuction }) {
     const [metadata, setMetadata] = useState<any>(null);
     const [isExpired, setIsExpired] = useState<boolean>(false);
     const router = useRouter();
-    const load = async () => {
-        try{
+    const load = React.useCallback(async () => {
+        try {
             if (!auction.tokenAddress || !auction.tokenId) return;
             const nftInfo = await getNftInfo(auction.tokenAddress, auction.tokenId);
             setNftInfo(nftInfo);
-    
+
             const metadata = await getMetadata(nftInfo.metadata);
             setMetadata(metadata);
-    
-    
+
+
             setIsExpired(checkIsExpired(Number(auction.endingAt?.toString())));
         } catch (error: any) {
             toast.error('Failed to load auction');
             console.error(error);
         }
-    }
+    }, [auction.tokenAddress, auction.tokenId, auction.endingAt]);
     useEffect(() => {
         load();
-    }, [auction.tokenAddress, auction.tokenId]);
+    }, [auction.tokenAddress, auction.tokenId, auction.endingAt, load]);
 
 
     return (
@@ -51,11 +51,11 @@ function AuctionCard({ auction }: { auction: TAuction }) {
                 "cursor-pointer",
                 "hover:scale-[1.02] transition-transform duration-300 ease-in-out"
             )}
-            onClick={()=>router.push(`../auctions/${auction.id}`)}
+            onClick={() => router.push(`../auctions/${auction.id}`)}
         >
             <Image
-                isLoading={!metadata}
-                src={metadata?.image}
+                isLoading={!nftInfo}
+                src={metadata?.image || 'https://fakeimg.pl/500x500?text=Image&font=bebas'}
                 alt={metadata?.name}
                 classNames={{
                     img: "w-full aspect-square object-cover rounded-[20px]",

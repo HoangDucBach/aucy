@@ -11,7 +11,9 @@ import {
     TransferTransaction,
     Client,
     AccountInfoQuery,
-    PublicKey
+    PublicKey,
+    Transaction,
+    TransactionId
 } from "@hashgraph/sdk";
 import { SignClientTypes } from "@walletconnect/types";
 import {
@@ -30,7 +32,8 @@ import { ContractFunctionParameterBuilder } from "@/services/helpers/contractFun
 import { appConfig } from "@/config";
 
 import EventEmitter from "events";
-import { ethers } from 'ethers';
+import { ethers, type JsonRpcApiProvider } from 'ethers';
+import EthereumProvider from '@walletconnect/ethereum-provider';
 
 // Prepare metadata for walletconnect
 const METADATA = appConfig.constants.METADATA;
@@ -40,7 +43,7 @@ const METADATA = appConfig.constants.METADATA;
 const refreshEvent = new EventEmitter();
 
 // Create a new project in walletconnect cloud to generate a project id
-const walletConnectProjectId = "377d75bb6f86a2ffd427d032ff6ea7d3";
+const walletConnectProjectId = appConfig.constants.WALLETCONNECT_PROJECT_ID;
 const currentNetworkConfig = appConfig.networks.testnet;
 const hederaNetwork = currentNetworkConfig.network;
 const hederaClient = Client.forName(hederaNetwork)
@@ -78,10 +81,17 @@ export const openWalletConnectModal = async () => {
         refreshEvent.emit("sync");
     });
 };
-const { ethereum } = window as any;
+
 export class WalletConnectWallet implements WalletInterface {
-    public getProvider() {
-        return new ethers.BrowserProvider(ethereum);
+    [key: string]: any;
+    public async getProvider() {
+        return null;
+    }
+    public async getSignerForHashgraph() {
+        if (dappConnector.signers.length === 0) {
+            throw new Error('No signers found!');
+        }
+        return dappConnector.signers[0];
     }
     public getSigner() {
         if (dappConnector.signers.length === 0) {
@@ -167,7 +177,12 @@ export class WalletConnectWallet implements WalletInterface {
         // after getting the contract call results, use ethers and abi.decode to decode the call_result
         return txResult ? txResult.transactionId : null;
     }
-
+    async executeTransaction(transaction: Transaction) {
+        const signer = this.getSigner();
+        await transaction.freezeWithSigner(signer);
+        const txResult = await transaction.executeWithSigner(signer);
+        return txResult ? txResult.transactionId : null;
+    }
     disconnect() {
         dappConnector.disconnectAll().then(() => {
             refreshEvent.emit("sync");

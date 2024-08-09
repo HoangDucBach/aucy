@@ -71,10 +71,6 @@ export const validatePropsMintNFT = (props: TMintTokenInfo) => {
         throw new ValidateError('Please fill in all fields.');
     }
 
-    // Validate tokenId
-    if (!validator.isEthereumAddress(tokenId)) {
-        throw ValidateErrorFactory.createError(ValidateErrorType.MintNFT, 'Invalid token id');
-    }
 
     // Validate amount
     if (amount < 0) {

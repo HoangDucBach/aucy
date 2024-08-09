@@ -49,3 +49,17 @@ export type TMintTokenInfo = {
     metadata?: Uint8Array[] | undefined;
 }
 
+/**
+ * Type: TTopicMessage
+ * Description: Topic Message
+ * @param topicId - string
+ * @param accountId - string
+ * @param message - string
+ * @param timestamp - number
+ */
+export type TTopicMessage ={ 
+    topicId: string;
+    accountId: string;
+    message: string;
+    timestamp: number;
+}

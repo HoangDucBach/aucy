@@ -2,9 +2,7 @@
 
 // External imports
 import React from 'react';
-import { NextSeo } from 'next-seo';
-import Image from 'next/image';
-import {toast} from 'react-toastify';
+import {Image} from '@nextui-org/react';
 
 // Internal imports
 import { WalletSelectionDialog } from "@/components/WalletSelectionDialog";
@@ -12,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useMedia } from '@/hooks';
 import clsx from 'clsx';
 import { SelectTokenMenu } from './create-auction/components/SelectTokenMenu';
+import { Metadata } from 'next';
 
 function IntroSection() {
     const { isMobile } = useMedia();
@@ -22,10 +21,11 @@ function IntroSection() {
                 <p>Aucy DApp is application that using amazing  Hedera technology for core</p>
                 <div>
                     <Button
-                    onClick={()=>{
-                        window.location.href='../create-auction'
-                    }}
-                    >Crate Auction now !</Button>
+                        color='primary'
+                        onClick={() => {
+                            window.location.href = '../dashboard'
+                        }}
+                    >Explore now !</Button>
                 </div>
             </div>
             <Image
@@ -40,16 +40,14 @@ function IntroSection() {
         </section>
     );
 }
+const metadata: Metadata = {
+    title: "Aucy | Home",
+    description: "Welcome to the home page"
+}
 export default function Home() {
-
     return (
         <>
-            <NextSeo
-                title="Aucy | Home"
-                description="Welcome to the home page"
-            />
             <IntroSection />
-
         </>
     );
 

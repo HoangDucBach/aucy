@@ -12,23 +12,23 @@ export function NftImageArea() {
     const auction = useAuctionContext();
     const [nft, setNft] = React.useState<any>(null);
     const [metadata, setMetadata] = React.useState<any>(null);
-    console.log(auction)
-    const load = async () => {
+    const load = React.useCallback(async () => {
         try {
             if (!auction) return;
             if (!auction.tokenAddress || !auction.tokenId) return;
             const nft = await getNftInfo(auction?.tokenAddress, auction?.tokenId);
-            setNft(nft)
+            setNft(nft);
             const metadata = await getMetadata(nft.metadata);
             setMetadata(metadata);
         } catch (error: any) {
-            toast.error(error.message)
-            console.error(error)
+            toast.error(error.message);
+            console.error(error);
         }
-    }
-    React.useEffect(() => {
-        load()
     }, [auction]);
+
+    React.useEffect(() => {
+        load();
+    }, [auction, load]);
 
     return (
         <Image
@@ -37,6 +37,7 @@ export function NftImageArea() {
                 wrapper : "h-[75vh] aspect-square object-cover rounded-[32px]",
                 blurredImg: "h-[75vh] aspect-square object-cover rounded-[32px]",
             }}
+            sizes="500"
             isLoading={!metadata}
             src={metadata?.image}
             alt={metadata?.name}

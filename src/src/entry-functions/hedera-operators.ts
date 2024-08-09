@@ -1,10 +1,10 @@
 // External imports
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { PublicKey, TokenCreateTransaction, TokenId, TokenInfo, TokenMintTransaction, TokenSupplyType, TokenType, TopicCreateTransaction, TopicId, TopicInfoQuery, TopicMessageQuery, TopicMessageSubmitTransaction } from "@hashgraph/sdk";
+import { AccountId, AccountInfoQuery, PublicKey, Signer, TokenCreateTransaction, TokenId, TokenInfo, TokenMintTransaction, TokenSupplyType, TokenType, TopicCreateTransaction, TopicId, TopicInfoQuery, TopicMessage, TopicMessageQuery, TopicMessageSubmitTransaction } from "@hashgraph/sdk";
 
 // Internal imports
 import { appConfig } from "@/config";
-import { TQuery, AccountError, AccountErrorType, InternalError, TMintTokenInfo, TCreateCollection, TCollectionInfo } from "@/types";
+import { TQuery, AccountError, AccountErrorType, InternalError, TMintTokenInfo, TCreateCollection, TCollectionInfo, SubmitMessageError, SubmitMessageErrorType, TTopicMessage } from "@/types";
 import { keysToCamelCase } from "@/lib/helpers";
 import pinataSdk from "@/utils/pinataSdk";
 import { HEDERA_PRIVATE_KEY } from "@/config/constants";
@@ -13,6 +13,7 @@ import { WalletConnectWallet } from "@/services/wallets/walletconnect/walletConn
 import { getPublicKey } from "@/utils/keyHelpers";
 import client from "@/utils/hederaClient";
 import { getMetadata } from "./ipfs-operators";
+import { WalletInterface } from "@/services/helpers/walletInterfaces";
 
 /**
  * Get my collections
@@ -59,6 +60,27 @@ export async function getNfts(tokenAddress: string, query?: TQuery): Promise<any
         throw new Error(error);
     };
 }
+
+export async function getMyNfts(accountId: string, tokenId: string, query?: TQuery): Promise<any[]> {
+    if (!accountId) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
+    try {
+        const endpoint = `${appConfig.constants.HEDERA_API_ENDPOINT}/tokens/${tokenId}/nfts`;
+        const accountHedera= await new AccountInfoQuery()
+        .setAccountId(accountId)
+        .execute(client);
+
+        const res = await axios.get(endpoint, {
+            params: {
+                ...query,
+                'account.id': accountHedera.accountId,
+                'order': 'asc'
+            }
+        });
+        return keysToCamelCase(res.data.nfts);
+    } catch (error: any) {
+        throw new InternalError(error.message);
+    }
+}
 /*
 || INFO FUNCTIONS
 */
@@ -74,33 +96,25 @@ export async function getNftInfo(tokenId: string, serial: any, query?: TQuery): 
 
         try {
             address1 = TokenId.fromSolidityAddress(tokenId).toString();
-            console.log("Address 1:", address1);
         } catch (error) {
-            console.error("Error converting tokenId to address1:", error);
-        }
-        
-        try {
-            address2 = TokenId.fromString(tokenId).toString();
-            console.log("Address 2:", address2);
-        } catch (error) {
-            console.error("Error converting tokenId to address2:", error);
-        }
-        
-        try {
-            address3 = TokenId.fromBytes(Buffer.from(tokenId)).toString();
-            console.log("Address 3:", address3);
-        } catch (error) {
-            console.error("Error converting tokenId to address3:", error);
-        }
-        
-        try {
-            endpoint = `${appConfig.constants.HEDERA_API_ENDPOINT}/tokens/${TokenId.fromSolidityAddress(tokenId).toString()}/nfts/${serial}`;
-            console.log("Endpoint:", endpoint);
-        } catch (error) {
-            console.error("Error constructing endpoint:", error);
         }
 
-        const res = await axios.get(endpoint, {
+        try {
+            address2 = TokenId.fromString(tokenId).toString();
+        } catch (error) {
+        }
+
+        try {
+            address3 = TokenId.fromBytes(Buffer.from(tokenId)).toString();
+        } catch (error) {
+        }
+
+        try {
+            endpoint = `${appConfig.constants.HEDERA_API_ENDPOINT}/tokens/${TokenId.fromSolidityAddress(tokenId).toString()}/nfts/${serial}`;
+        } catch (error) {
+        }
+
+        const res = await axios.get(endpoint!, {
             params: {
                 ...query
             },
@@ -186,7 +200,7 @@ export async function getAccountInfo(accountId: string, query?: TQuery) {
  * @param _tokenInfo
  * @param walletInterface
  */
-export async function createCollection(_tokenInfo: TCreateCollection, walletInterface: WalletConnectWallet) {
+export async function createCollection(_tokenInfo: TCreateCollection, walletInterface: WalletInterface) {
     if (!HEDERA_PRIVATE_KEY) throw new Error('Supply key is required to create NFT');
 
     // Validate props
@@ -194,8 +208,9 @@ export async function createCollection(_tokenInfo: TCreateCollection, walletInte
 
     try {
 
-        const operatorKey = getPublicKey(walletInterface.getSigner().getAccountId());
-        if (!operatorKey) throw new Error('Failed to get your public key');
+        const operatorKey = await getPublicKey(walletInterface.getSigner().getAccountId());
+        console.log('operatorKey', operatorKey);
+        if(!operatorKey) throw new Error('Failed to get your public key');
 
         const {
             name,
@@ -227,10 +242,6 @@ export async function createCollection(_tokenInfo: TCreateCollection, walletInte
 
         // Freeze the transaction
         await tokenCreateTransaction.freezeWithSigner(walletInterface.getSigner());
-
-        // Submit a message to the topic
-        await submitAMessage(appConfig.constants.AUCY_TOPIC_ID, `New collection created: ${name}`, walletInterface);
-
         // Submit transaction
         return await tokenCreateTransaction.executeWithSigner(walletInterface.getSigner());
     }
@@ -246,7 +257,7 @@ export async function createCollection(_tokenInfo: TCreateCollection, walletInte
  * @param walletInterface
  * @param metadataFilePath - Path to the metadata file
  */
-export async function mintNFT(_mintTokenInfo: TMintTokenInfo, walletInterface: any, metadata: any) {
+export async function mintNFT(_mintTokenInfo: TMintTokenInfo, walletInterface: WalletInterface, metadata: any) {
     try {
         // validatePropsMintNFT(_mintTokenInfo);
         const {
@@ -272,6 +283,7 @@ export async function mintNFT(_mintTokenInfo: TMintTokenInfo, walletInterface: a
         // Submit transaction
         return await signedTransaction.executeWithSigner(walletInterface.getSigner());
     } catch (error: any) {
+        console.error(error);
         throw new Error("Error minting NFT");
     }
 }
@@ -283,16 +295,16 @@ export async function mintNFT(_mintTokenInfo: TMintTokenInfo, walletInterface: a
 /**
  * Create topics
  */
-export async function createTopic(walletInterface: WalletConnectWallet) {
+export async function createTopic(walletInterface: WalletInterface) {
     if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
     try {
-        const operatorKey = walletInterface.getPublicKey();
+        const operatorKey = await walletInterface.getPublicKey();
         const topicCreateTransaction = new TopicCreateTransaction()
         if (operatorKey) topicCreateTransaction.setAdminKey(operatorKey);
 
-        const txResponse = await topicCreateTransaction.executeWithSigner(walletInterface.getSigner());
-
-        return txResponse.transactionId;
+        const txResponse = await topicCreateTransaction.execute(client);
+        const receipt = await txResponse.getReceipt(client);
+        return receipt.topicId;
     } catch (error: any) {
         throw new Error("Error creating topic");
     }
@@ -314,20 +326,21 @@ export async function subcribeTopic(topicId: string) {
  * @param walletInterface
  * @returns boolean
  */
-export async function submitAMessage(topicId: string, message: string, walletInterface: WalletConnectWallet) {
+export async function submitAMessage(topicId: string, message: string, walletInterface: WalletInterface) {
     if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
+
     try {
         const transaction = new TopicMessageSubmitTransaction()
             .setTopicId(topicId)
             .setMessage(message)
+        const txResponse = await transaction.execute(client);
+        console.log('txResponse', txResponse);
+        // const receipt = await txResponse.getReceiptWithSigner(signer);
 
-        const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
-
-        const receipt = await txResponse.getReceiptWithSigner(walletInterface.getSigner());
-
-        return receipt.status;
+        // return receipt.status;
     } catch (error: any) {
-        throw new Error("Error submitting message to topic");
+        console.error(error);
+        throw new SubmitMessageError(SubmitMessageErrorType.SUBMIT_MESSAGE_FAILED);
     }
 }
 
@@ -356,18 +369,20 @@ export async function getTopicInfo(topicId: string, walletInterface: WalletConne
  */
 export async function getTopicMessages(topicId: string) {
     if (!topicId) throw new Error('Topic ID is required to get topic messages');
-    const messages: string[] = []
+    const messages: TTopicMessage[] = []
     try {
-        new TopicMessageQuery()
-            .setTopicId(TopicId.fromString(topicId))
-            .setStartTime(0)
-            .subscribe(client, (error) => {
-                console.log('Error getting topic message', error);
-            }, (message) => {
-                // message is a Uint8Array
-                const decodedMessage = new TextDecoder().decode(message.contents);
-                messages.push(decodedMessage);
-            });
+        const res = await axios.get(`${appConfig.constants.HEDERA_API_ENDPOINT}/topics/${topicId}/messages`)
+        const data = res.data.messages;
+        for (let i = 0; i < data.length; i++) {
+            const decodedMessage = Buffer.from(data[i].message, 'base64').toString();
+            const message: TTopicMessage = {
+                message: decodedMessage,
+                accountId: data[i].payer_account_id,
+                topicId: data[i].topic_id,
+                timestamp: data[i].consensus_timestamp,
+            }
+            messages.push(message);
+        }
         return messages;
     } catch (error: any) {
         console.error('Error getting topic messages', error);

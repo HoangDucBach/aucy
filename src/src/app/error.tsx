@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import {Image} from '@nextui-org/react';
 
 export default function Error({
-                                  error,
-                                  reset,
-                              }: {
+    error,
+    reset,
+}: {
     error: Error;
     reset: () => void;
 }) {
@@ -16,16 +17,17 @@ export default function Error({
     }, [error]);
 
     return (
-        <div>
-            <h2>Something went wrong!</h2>
-            <button
-                onClick={
-                    // Attempt to recover by trying to re-render the segment
-                    () => reset()
-                }
-            >
-                Try again
-            </button>
+        <div className="w-full h-full flex flex-col items-center gap-2">
+            <Image
+                src="/aucy-light-logo512.png" alt="404"
+                className="w-[360px] aspect-square"
+                width={360}
+                height={360}
+            />
+            <h2 className="text-2xl text-default-foreground font-bold text-center">Something went wrong!</h2>
+            <p className="text-default text-center">
+                Please try again later or contact support if the issue persists.
+            </p>
         </div>
     );
 }

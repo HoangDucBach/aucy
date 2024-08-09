@@ -3,6 +3,7 @@
 // External imports
 import { useCollection } from "../context";
 import { Chip } from "@nextui-org/react";
+import {Image} from '@nextui-org/react'
 import { useParams } from "next/navigation";
 import { Mint } from "./Mint";
 
@@ -38,10 +39,12 @@ export function ProfileCollection(props: ProfileCollectionProps) {
                 )
             }
             <div className="flex flex-col items-center gap-8 md:justify-between w-full h-full">
-                <img
+                <Image
                     src={collection.image || 'https://placehold.jp/360x360.png'}
                     alt="Collection Image"
                     className="rounded-[32px] w-full aspect-auto object-cover"
+                    width={360}
+                    height={360}
                 />
                 <div className="w-full flex flex-row flex-wrap justify-between">
                     <h1 className="text-4xl font-bold text-default-foreground w-full break-words">{collection.name}</h1>

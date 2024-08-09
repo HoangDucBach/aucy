@@ -2,7 +2,8 @@
 
 import { getMetadata } from "@/entry-functions";
 import { TokenInfo } from "@hashgraph/sdk";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import {Image} from '@nextui-org/react';
 
 // Internal imports
 import { useCollection } from "../context";
@@ -14,21 +15,22 @@ export function TokenCard(props: {
     const { token } = props;
     const collection = useCollection();
     const [metadata, setMetadata] = useState<any>(null);
-    const loadMetadata = async () => {
+    const loadMetadata = React.useCallback(async () => {
         if (!token.metadata) return;
         const data = await getMetadata(token.metadata);
         setMetadata(data);
-    }
+    }, [token.metadata]);
+
     useEffect(() => {
         loadMetadata();
-    }, [token]);
+    }, [token, loadMetadata]);
 
     return (
         <div className={clsx([
             "flex flex-col gap-8 items-center justify-between p-4 rounded-[32px] bg-layout-foreground-100 w-full h-full",
 
         ])}>
-            <img
+            <Image
                 src={metadata ? metadata.image : 'https://fakeimg.pl/500x500?text=Image&font=bebas'}
                 alt={'token image'}
                 className="rounded-[32px] w-full aspect-[1/1]"

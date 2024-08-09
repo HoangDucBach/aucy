@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useMedia } from "@/hooks";
 import { openWalletConnectModal } from "@/services/wallets/walletconnect/walletConnectClient";
+import { connectToMetamask } from "@/services/wallets/metamask/metamaskClient";
 
 interface WalletSelectionDialogProps {
     open?: boolean;
@@ -51,9 +52,23 @@ export const WalletSelectionDialog = (props: WalletSelectionDialogProps) => {
                             }}
                         >
                             WalletConnect
-                            <img
+                            <Image
                                 src={'/assets/walletconnect-logo.svg'}
                                 alt='walletconnect logo'
+                                className='w-8 h-8'
+                            />
+                        </Button>
+                        <Button
+                            variant="solid"
+                            fullWidth
+                            onClick={() => {
+                                connectToMetamask()
+                            }}
+                        >
+                            MetaMask
+                            <Image
+                                src={'/assets/metamask-logo.svg'}
+                                alt='metamask logo'
                                 className='w-8 h-8'
                             />
                         </Button>

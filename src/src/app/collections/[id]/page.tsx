@@ -8,6 +8,7 @@ import { CollectionContext } from "./context";
 import { ProfileCollection } from "./components/ProfileCollection";
 import { NftsContainer } from "./components/NftsContainer";
 import { toast } from "react-toastify";
+import Head from "next/head";
 
 export default function Page({ params }: { params: { id: string } }) {
     const { id } = params;
@@ -24,6 +25,10 @@ export default function Page({ params }: { params: { id: string } }) {
     if(!collection) return <div>Loading...</div>;
     return (
         <CollectionContext.Provider value={collection}>
+            <Head>
+                <title>{'Collection - '+collection.name}</title>
+                <meta name="description" content={collection.description} />
+            </Head>
             <div className="flex flex-col md:flex-row gap-8 w-full h-full">
                 <ProfileCollection />
                 <NftsContainer />

@@ -15,6 +15,7 @@ import { createAuction } from "@/entry-functions";
 import { useWalletInterface } from "@/services/wallets/useWalletInterface";
 import { SelectTokenMenu } from "./SelectTokenMenu";
 import { toast } from "react-toastify";
+import { Image } from "@nextui-org/react";
 
 export default function CreateAuctionForm() {
     const { walletInterface } = useWalletInterface();
@@ -22,6 +23,11 @@ export default function CreateAuctionForm() {
     const [data, setData] = useState<TAuctionCreation | null>(null);
     const [tokenId, setTokenId] = useState<number | null>(null);
     const [tokenAddress, setTokenAddress] = useState<string | null>(null);
+    const [receivers, setReceivers] = useState<string[]>([]);
+    const [percentages, setPercentages] = useState<number[]>([]);
+    const [newReceiver, setNewReceiver] = useState<string>('');
+    const [newPercentage, setNewPercentage] = useState<number>(0);
+
     const {
         control,
         register,
@@ -46,8 +52,8 @@ export default function CreateAuctionForm() {
                 minBidIncrement: data.minBidIncrement,
                 endingPrice: data.endingPrice,
                 endingAt: data.endingAt,
-                receivers: [],
-                percentages: [],
+                receivers: receivers,
+                percentages: percentages,
             }, walletInterface);
         } catch (error: any) {
             console.error(error);
@@ -79,6 +85,21 @@ export default function CreateAuctionForm() {
     const validateEndingPrice = register('endingPrice', { required: false })
     const validateMinBidIncrement = register('minBidIncrement', { required: false })
     const validateEndingAt = register('endingAt', { required: true })
+
+    const addReceiver = () => {
+        const totalPercentage = percentages.reduce((acc, curr) => acc + curr, 0);
+        if (totalPercentage + newPercentage > 100) {
+            toast.error('Total percentage cannot exceed 100%');
+            return;
+        }
+        if (newReceiver && newPercentage > 0) {
+            setReceivers([...receivers, newReceiver]);
+            setPercentages([...percentages, newPercentage]);
+            setNewReceiver('');
+            setNewPercentage(0);
+        }
+    }
+
     return (
         <>
             <form
@@ -124,10 +145,12 @@ export default function CreateAuctionForm() {
                                     input: 'text-4xl font-bold !text-default-500',
                                 }}
                                 endContent={
-                                    <img
+                                    <Image
                                         src={'https://cryptologos.cc/logos/hedera-hbar-logo.svg?v=032'}
                                         alt='hbar logo'
                                         className='w-8 h-8'
+                                        width={32}
+                                        height={32}
                                     />
                                 }
                                 isRequired
@@ -147,10 +170,12 @@ export default function CreateAuctionForm() {
                                     input: 'text-4xl font-bold !text-default-500',
                                 }}
                                 endContent={
-                                    <img
+                                    <Image
                                         src={'https://cryptologos.cc/logos/hedera-hbar-logo.svg?v=032'}
                                         alt='hbar logo'
                                         className='w-8 h-8'
+                                        width={32}
+                                        height={32}
                                     />
                                 }
                                 isRequired={validateMinBidIncrement.required}
@@ -173,14 +198,56 @@ export default function CreateAuctionForm() {
                                 defaultValue="0"
                                 min={0}
                                 endContent={
-                                    <img
+                                    <Image
                                         src={'https://cryptologos.cc/logos/hedera-hbar-logo.svg?v=032'}
                                         alt='hbar logo'
                                         className='w-8 h-8'
+                                        width={32}
+                                        height={32}
                                     />
                                 }
                                 {...validateEndingPrice}
                             />
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <h3 className="font-semibold text-default-foreground">Receivers</h3>
+                        <div className="flex flex-row items-end gap-4 w-full">
+                            <Input
+                                label="Receiver Address"
+                                placeholder="Receiver Address"
+                                labelPlacement="outside"
+                                classNames={{
+                                    label: 'font-semibold text-default-foreground',
+                                }}
+                                value={newReceiver}
+                                onChange={(e) => setNewReceiver(e.target.value)}
+                            />
+                            <Input
+                                label="Percentage"
+                                type="number"
+                                placeholder="Percentage"
+                                labelPlacement="outside"
+                                classNames={{
+                                    label: 'font-semibold text-default-foreground',
+                                }}
+                                onChange={(e) => setNewPercentage(Number(e.target.value))}
+                            />
+                            <Button
+                                variant="solid"
+                                color="primary"
+                                onClick={addReceiver}
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        <div>
+                            {receivers.map((receiver, index) => (
+                                <div key={index} className="flex justify-between">
+                                    <span>{receiver}</span>
+                                    <span className="text-secondary">{percentages[index]}%</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                     <Controller

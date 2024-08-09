@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useAuctionContext } from "../context";
+import { endAuction } from "@/entry-functions";
+import { useWalletInterface } from "@/services/wallets/useWalletInterface";
 
 const checkExpired = (time: number) => {
     const now = new Date().getTime();
@@ -37,12 +39,12 @@ const formatTimeLeft = (timeLeft: TimeLeft) => {
     return `${days ? days + " days " : ""}${hours ? hours + " hr " : ""}${minutes ? minutes + " min " : ""}${seconds ? seconds + " sec" : ""}`;
 };
 
-type TUnit= "days" | "hours" | "minutes" | "seconds";
+type TUnit = "days" | "hours" | "minutes" | "seconds";
 const truncateUnit = (unit: TUnit) => {
-    if(unit === "days") return "days";
-    if(unit === "hours") return "hrs";
-    if(unit === "minutes") return "mins";
-    if(unit === "seconds") return "secs";
+    if (unit === "days") return "days";
+    if (unit === "hours") return "hrs";
+    if (unit === "minutes") return "mins";
+    if (unit === "seconds") return "secs";
     return unit;
 }
 function NumberBox({ value, unit }: { value: number, unit: TUnit }) {
@@ -55,23 +57,39 @@ function NumberBox({ value, unit }: { value: number, unit: TUnit }) {
 }
 export function CountdownArea() {
     const auction = useAuctionContext();
+    const walletInterface = useWalletInterface();
+
     const time = Number(auction?.endingAt?.toString());
 
-    const [timeLeft, setTimeLeft] = React.useState<TimeLeft>(calculateTimeLeft(time));
-
+    const [timeLeft, setTimeLeft] = React.useState<TimeLeft>({});
+    const [isExpired, setIsExpired] = React.useState<boolean>(false);
+    const handleEndAuction = async () => {
+        // await endAuction(auction?.id!, walletInterface);
+    }
     React.useEffect(() => {
-        let timerId: NodeJS.Timeout;
+        const initialTimeLeft = calculateTimeLeft(time);
+        setTimeLeft(initialTimeLeft);
 
+        let timerId: NodeJS.Timeout;
         const updateTimer = () => {
             setTimeLeft(calculateTimeLeft(time));
             if (!checkExpired(time)) {
-                timerId = setTimeout(updateTimer, 7); 
+                timerId = setTimeout(updateTimer, 7);
             }
         };
 
         updateTimer();
 
         return () => clearTimeout(timerId);
+    }, [time]);
+
+    React.useEffect(() => {
+        if (checkExpired(time)) {
+            handleEndAuction();
+            setIsExpired(true);
+        } else {
+            setIsExpired(false);
+        }
     }, [time]);
 
     return (
@@ -84,6 +102,17 @@ export function CountdownArea() {
                             Object.entries(timeLeft).map(([unit, value]) => (
                                 <NumberBox key={unit} value={value} unit={unit as TUnit} />
                             ))
+                        }
+                        {
+                            isExpired && (
+                                <>
+                                    <NumberBox value={0} unit="days" />
+                                    <NumberBox value={0} unit="hours" />
+                                    <NumberBox value={0} unit="minutes" />
+                                    <NumberBox value={0} unit="seconds" />
+                                </>
+
+                            )
                         }
                     </div>
                 )}

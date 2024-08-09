@@ -3,13 +3,13 @@
 import React from "react";
 import { GoDotFill } from "react-icons/go";
 import { PiGiftFill } from "react-icons/pi";
-import { PiWarningCircleFill } from "react-icons/pi";
+import {Image} from '@nextui-org/react';
 
 // Internal imports
 import { useAuctionContext } from "../context";
 import { TAuction } from "@/types";
-import { Chip, divider, Tooltip } from "@nextui-org/react";
-import { Button } from "@/components/ui/button";
+import { Chip, Tooltip } from "@nextui-org/react";
+import { Hbar } from "@hashgraph/sdk";
 
 const checkExpired = (auction: TAuction) => {
     const now = new Date().getTime();
@@ -22,14 +22,14 @@ function DonationArea() {
 
     React.useEffect(() => {
         if (auction?.donation) {
-            setDonation(auction.donation);
+            setDonation(Hbar.fromTinybars(Number(auction?.donation)).toBigNumber().toNumber());
         }
     }, [auction]);
 
     return (
         <Tooltip
             content={
-                <p className="text-center">Donations of auctions,<br /> it won't include in final price!</p>
+                <p className="text-center">Donations of auctions,<br /> it won&apos;t include in final price!</p>
             }
             placement="top"
             offset={32}
@@ -38,10 +38,12 @@ function DonationArea() {
                 <PiGiftFill size={48} className="shadow-primary text-primary" />
                 <div className="flex flex-row gap-2 items-center w-full">
                     <p className="text-default-foreground font-semobild text-base text-start w-full md:w-fit">{donation}</p>
-                    <img
+                    <Image
                         src={'https://cryptologos.cc/logos/hedera-hbar-logo.svg?v=032'}
                         alt='hbar logo'
                         className='w-6 h-6'
+                        width={24}
+                        height={24}
                     />
                 </div>
             </button>

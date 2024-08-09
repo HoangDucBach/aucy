@@ -47,14 +47,31 @@ export type TAuction = {
     endedAt?: BigInt;
     highestBid?: BigInt;
     highestBidder?: string;
-    donation?: number;
+    donation?: BigInt;
     receivers?: string[];
     percentages?: number[];
 }
 
+/**
+ * Bid type
+ * @param bidder - The address of the bidder
+ * @param auctionId - The ID of the auction
+ * @param amount - The amount of the bid
+ * @param timestamp - The time of the bid
+ */
 export type TBid = {
     bidder?: string;
     auctionId?: string;
     amount?: BigInt;
     timestamp?: BigInt;
+}
+
+/**
+ * Receiver type
+ * @param address - The address of the receiver
+ * @param percentage - The percentage of the receiver
+ */
+export type TReceiver = {
+    address?: string;
+    percentage?: number | BigInt;
 }
