@@ -1,0 +1,14 @@
+nftDeployment=await nft.deployTransaction.wait()
+nft=await nftFactory.deploy()
+nftFactory=await hre.ethers.getContractFactory('NFTAuctionManager')
+await hre.ethers.getContractFactory
+nftFactory= wait hre.ethers.getContractFactory('NFTAuctionManager')
+deployer=(await hre.ethers.getSigners())[0]
+deployer=(await hre.ethers.getSigners())]0
+(await hre.ethers.getSigners())[0].address
+(await hre.ethers.getSigner())[0]
+(await hre.ethers.getSigner())[0].address
+(await hre.ethers.getSigner())
+await hre
+(await hre.ethers.getSigner())[0].address
+(await require('hardhat'))

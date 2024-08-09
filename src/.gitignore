@@ -38,9 +38,6 @@ next-env.d.ts
 node_modules
 .env
 
-# Hardhat files
-/cache
-/artifacts
 
 # TypeChain files
 /typechain

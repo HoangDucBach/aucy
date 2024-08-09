@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ERCType",
+  "sourceName": "contracts/auction/ERCType.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220244b0028c805f63841e579334214793063ffaa63ac3da94bc557daa240e7629664736f6c63430008180033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220244b0028c805f63841e579334214793063ffaa63ac3da94bc557daa240e7629664736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
