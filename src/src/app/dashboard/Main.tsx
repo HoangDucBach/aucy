@@ -17,26 +17,26 @@ const DynamicMyCollectionsContainer = dynamic(() => import('./components/MyColle
 });
 export default function Main() {
     const [searchParam, setSearchParam] = React.useState<string>('');
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-    // Get a new searchParams string by merging the current
-    // searchParams with a provided key/value pair
     const createQueryString = React.useCallback(
         (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set(name, value)
+            const params = new URLSearchParams(searchParams.toString());
+            params.set(name, value);
 
-            return params.toString()
+            return params.toString();
         },
         [searchParams]
-    )
+    );
+
     React.useEffect(() => {
         router.push(
             `${pathname}?${createQueryString('search', searchParam)}`
-        )
+        );
     }, [searchParam, createQueryString, pathname, router]);
+
     return (
         <div className="flex flex-col gap-8 w-full h-full">
             <Input
@@ -45,8 +45,8 @@ export default function Main() {
                 value={searchParam}
                 onChange={(e) => setSearchParam(e.target.value)}
             />
-            <div className="grid grid-cols-3 gap-4 w-full">
-                <div className="col-span-2 col-start-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                <div className="md:col-span-2">
                     <Tabs
                         variant="light"
                         radius="full"
@@ -63,10 +63,10 @@ export default function Main() {
                         </Tab>
                     </Tabs>
                 </div>
-                <div className="col-span-1 col-start-3">
+                <div className="md:col-span-1">
                     <TransactionContainer />
                 </div>
             </div>
         </div>
-    )
+    );
 }

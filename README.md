@@ -70,7 +70,7 @@ git clone https://github.com/HoangDucBach/aucy
    
 2. Intall NPM Packages
 ```sh
-npm install
+npm install --force
 ```
 3. Usage
 ```sh

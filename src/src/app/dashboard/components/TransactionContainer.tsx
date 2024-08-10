@@ -20,7 +20,7 @@ function TransactionCard({ message }: { message: TTopicMessage }) {
             </div>
             <div className="w-full flex flex-col gap-0">
                 <p className="text-sm text-default-500 font-medium">Timestamp</p>
-                <div className="flex flex-row items-center justify-between">
+                <div className="w-full flex flex-row items-center justify-between">
                     <p className="break-words w-full text-xs text-default-foreground ">
                         {new Date(message.timestamp * 1000).toLocaleString('en-GB', {
                             timeZone: 'Etc/GMT',
@@ -54,11 +54,11 @@ export default function TransactionContainer() {
         load()
     }, []);
     return (
-        <section id="auctions" className='flex flex-col gap-8 h-full w-fit'>
+        <section id="auctions" className='flex flex-col gap-8 h-full w-full overflow-x-clip'>
             <h1 className="text-2xl font-bold text-default-foreground flex flex-row items-center gap-4">
                 Transactions
             </h1>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
                 {messages.map((message, index) => (
                     <TransactionCard key={index} message={message} />
                 ))}

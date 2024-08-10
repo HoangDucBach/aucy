@@ -15,6 +15,7 @@ import { donate } from "@/entry-functions";
 import { toast } from "react-toastify";
 import { placeBid, withdrawBid } from "@/entry-functions";
 import { AuctionDonationError } from "@/types";
+import { useMedia } from "@/hooks";
 
 function DonationArea() {
     const { walletInterface } = useWalletInterface();
@@ -22,7 +23,7 @@ function DonationArea() {
     const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
     const [donation, setDonation] = React.useState<number>(0);
     const [loading, setLoading] = React.useState<boolean>(false);
-
+    const {isMobile}=useMedia();
     const handleDonate = async () => {
         try {
             setLoading(true);
@@ -46,11 +47,13 @@ function DonationArea() {
                 size="md"
                 className="bg-white/5"
                 onClick={onOpen}
+                isLoading={loading}
+                isIconOnly={isMobile}
                 endContent={
                     <PiGiftFill size={24} className="text-primary" />
                 }
             >
-                Donate
+                {isMobile ? null : 'Donate'}
             </Button>
             <Modal
                 isOpen={isOpen}
@@ -111,6 +114,7 @@ function BidArea() {
     const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
     const [bidValue, setBidValue] = React.useState<number>(0);
     const [loading, setLoading] = React.useState<boolean>(false);
+    const {isMobile}=useMedia();
     const auction = useAuctionContext();
 
     const handleBid = async () => {
@@ -134,8 +138,12 @@ function BidArea() {
                 radius="full"
                 size="md"
                 onClick={onOpen}
+                isIconOnly={isMobile}
+                endContent={
+                    <TbPigMoney size={24} className="text-default-foreground" />
+                }
             >
-                Place a bid
+                {isMobile ? null : 'Place a bid'}
             </Button>
             <Modal
                 isOpen={isOpen}
@@ -197,6 +205,7 @@ function WithdrawBidArea() {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [isAgreed, setIsAgreed] = React.useState<boolean>(false);
     const auction = useAuctionContext();
+    const {isMobile}=useMedia();
 
     const handleWithdrawBid = async () => {
         try {
@@ -220,8 +229,13 @@ function WithdrawBidArea() {
                 radius="full"
                 size="md"
                 onClick={onOpen}
+                isLoading={loading}
+                endContent={
+                    <PiHandWithdrawBold size={24} />
+                }
+                isIconOnly={isMobile}
             >
-                Withdraw bid
+                {isMobile ? null : 'Withdraw Bid'}
             </Button>
             <Modal
                 isOpen={isOpen}
