@@ -14,50 +14,30 @@ import { ethers } from "ethers";
  * @param walletInterface - Wallet interface
  */
 export async function placeBid(auctionId: string, amount: number, walletInterface: any) {
-    // if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
-    // if(!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
-    // try {
-
-    //     const transaction = await new ContractExecuteTransaction()
-    //         .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
-    //         .setGas(1_000_000)
-    //         .setMaxAttempts(10)
-    //         .setPayableAmount(new Hbar(amount))
-    //         .setFunction("placeBid", new ContractFunctionParameters()
-    //             .addString(auctionId)
-    //         )
-    //         .setTransactionMemo("Place bid")
-    //         .freezeWithSigner(walletInterface.getSigner());
-
-    //     const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
-    ethers.parseEther(amount.toString())
-    //     const record = await txResponse.getRecord(client);
-
-    //     const result = record.contractFunctionResult;
-
-    //     return result;
-
-    // } catch (error: any) {
-    //     console.error('Error placing bid', error);
-    //     throw new Error(error);
-    // }
-
-    if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
     if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
-    const contractAddress = appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ADDRESS;
-    const signer = await walletInterface.getProvider().getSigner();
-    const account = await signer.getAddress();
-
+    if(!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
     try {
-        const contract = new ethers.Contract(contractAddress, appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI, signer);
-        const tx = await contract.placeBid(auctionId, {
-            value: ethers.parseEther(amount.toString())
-        });
-        await tx.wait();
 
-        return true;
+        const transaction = await new ContractExecuteTransaction()
+            .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+            .setGas(1_000_000)
+            .setMaxAttempts(10)
+            .setPayableAmount(new Hbar(amount))
+            .setFunction("placeBid", new ContractFunctionParameters()
+                .addAddress(auctionId)
+            )
+            .setTransactionMemo("Place bid")
+            .freezeWithSigner(walletInterface.getSigner());
+
+        const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
+        const record = await txResponse.getRecord(client);
+
+        const result = record.contractFunctionResult;
+
+        return result;
+
     } catch (error: any) {
-        console.error(error);
+        console.error('Error placing bid', error);
         throw new Error(error);
     }
 }
@@ -68,44 +48,27 @@ export async function placeBid(auctionId: string, amount: number, walletInterfac
  * @param walletInterface - Wallet interface
  */
 export async function withdrawBid(auctionId: string, walletInterface: any) {
-    // if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
-    // if(!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
-    // try {
-
-    //     const transaction = await new ContractExecuteTransaction()
-    //         .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
-    //         .setGas(10_000_000)
-    //         .setMaxAttempts(10)
-    //         .setFunction("withdrawBid", new ContractFunctionParameters()
-    //             .addString(auctionId)
-    //         )
-    //         .setTransactionMemo("Withdraw bid")
-    //         .freezeWithSigner(walletInterface.getSigner());
-
-    //     const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
-    //     const record = await txResponse.getRecord(client);
-    //     const result = record.contractFunctionResult;
-    //     return result;
-
-    // } catch (error: any) {
-    //     console.error('Error withdrawing bid', error);
-    //     throw new Error(error);
-    // }
-
-    if (!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
     if (!auctionId) throw new IdentityError(IdentityErrorType.IDENTITY_NOT_FOUND);
-    const contractAddress = appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ADDRESS;
-    const signer = await walletInterface.getProvider().getSigner();
-    const account = await signer.getAddress();
-
+    if(!walletInterface) throw new AccountError(AccountErrorType.ACCOUNT_NOT_CONNECTED);
     try {
-        const contract = new ethers.Contract(contractAddress, appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ABI, signer);
-        const tx = await contract.withdrawBid(auctionId);
-        await tx.wait();
 
-        return true;
+        const transaction = await new ContractExecuteTransaction()
+            .setContractId(appConfig.constants.AUCY_CONTRACT_NFT_AUCTION_MANAGER_ID)
+            .setGas(10_000_000)
+            .setMaxAttempts(10)
+            .setFunction("withdrawBid", new ContractFunctionParameters()
+                .addAddress(auctionId)
+            )
+            .setTransactionMemo("Withdraw bid")
+            .freezeWithSigner(walletInterface.getSigner());
+
+        const txResponse = await transaction.executeWithSigner(walletInterface.getSigner());
+        const record = await txResponse.getRecord(client);
+        const result = record.contractFunctionResult;
+        return result;
+
     } catch (error: any) {
-        console.error(error);
+        console.error('Error withdrawing bid', error);
         throw new Error(error);
     }
 }
@@ -140,7 +103,7 @@ export async function getHighestBidder(auctionId: string, walletInterface: any) 
         .setGas(10_000_000)
         .setMaxAttempts(10)
         .setFunction("getHighestBidder", new ContractFunctionParameters()
-            .addString(auctionId)
+            .addAddress(auctionId)
         )
 
     const txTransaction = await transaction.execute(client);

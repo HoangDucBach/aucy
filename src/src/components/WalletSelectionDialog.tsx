@@ -4,7 +4,7 @@ import { FaWallet } from "react-icons/fa";
 
 // Internal imports
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { Image } from "@nextui-org/react";
 import { useMedia } from "@/hooks";
 import { openWalletConnectModal } from "@/services/wallets/walletconnect/walletConnectClient";
 import { connectToMetamask } from "@/services/wallets/metamask/metamaskClient";
@@ -55,7 +55,8 @@ export const WalletSelectionDialog = (props: WalletSelectionDialogProps) => {
                             <Image
                                 src={'/assets/walletconnect-logo.svg'}
                                 alt='walletconnect logo'
-                                className='w-8 h-8'
+                                width={32}
+                                height={32}
                             />
                         </Button>
                         <Button
@@ -69,7 +70,8 @@ export const WalletSelectionDialog = (props: WalletSelectionDialogProps) => {
                             <Image
                                 src={'/assets/metamask-logo.svg'}
                                 alt='metamask logo'
-                                className='w-8 h-8'
+                                width={32}
+                                height={32}
                             />
                         </Button>
                         <Divider />

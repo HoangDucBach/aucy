@@ -2,6 +2,7 @@
 import { ContractCreateTransaction, Hbar, FileCreateTransaction, Client, TopicCreateTransaction, PrivateKey } from "@hashgraph/sdk";
 import envConfig from "dotenv";
 
+import contractJson from "../artifacts/contracts/auction/NFTAuctionManager.sol/NFTAuctionManager.json"
 // Internal imports
 
 envConfig.config({
@@ -20,4 +21,17 @@ async function createTopics() {
     console.log(`Topic ID: ${txReceipt.topicId}`);
 }
 
-createTopics();
+async function deployContract() {
+    const bytecode = Uint8Array.from(Buffer.from(contractJson.bytecode, 'hex'));
+    const txTransaction = await new ContractCreateTransaction()
+        .setBytecode(bytecode)
+        .execute(client);
+
+    const txReceipt = await txTransaction.getReceipt(client);
+
+    console.log(`Contract ID: ${txReceipt.contractId}`);
+
+}
+
+deployContract();
+// createTopics();

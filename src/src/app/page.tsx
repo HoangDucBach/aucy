@@ -9,7 +9,6 @@ import { WalletSelectionDialog } from "@/components/WalletSelectionDialog";
 import { Button } from '@/components/ui/button';
 import { useMedia } from '@/hooks';
 import clsx from 'clsx';
-import { SelectTokenMenu } from './create-auction/components/SelectTokenMenu';
 import { Metadata } from 'next';
 
 function IntroSection() {
