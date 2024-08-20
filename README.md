@@ -9,7 +9,7 @@
   <p align="center">
     DApp project for nft and auction
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
+    <a href="https://aucy.vecel.com/">View Demo</a>
   </p>
 </div>
 
