@@ -2,14 +2,14 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://aucy.vecel.com/">
+  <a href="[https://aucy.vecel.com/](https://aucy.vercel.app/)">
     <img src="src/public/aucy.svg" alt="Logo" width="80" height="80">
   </a>
   <h1 align="center">Aucy</h1>
   <p align="center">
     DApp project for nft and auction
     <br />
-    <a href="https://aucy.vecel.com/">View Demo</a>
+    <a href="[https://aucy.vecel.com/](https://aucy.vercel.app/)">View Demo</a>
   </p>
 </div>
 
