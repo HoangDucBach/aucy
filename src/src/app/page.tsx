@@ -5,7 +5,6 @@ import React from 'react';
 import {Image} from '@nextui-org/react';
 
 // Internal imports
-import { WalletSelectionDialog } from "@/components/WalletSelectionDialog";
 import { Button } from '@/components/ui/button';
 import { useMedia } from '@/hooks';
 import clsx from 'clsx';
